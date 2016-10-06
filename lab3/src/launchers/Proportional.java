@@ -15,7 +15,7 @@ public class Proportional
     public static void main(String[] args) throws Exception
     {
         NXTRegulatedMotor left = Motor.A;
-        NXTRegulatedMotor right = Motor.B;        
+        NXTRegulatedMotor right = Motor.B;
         EV3ColorSensor color = new EV3ColorSensor(SensorPort.S1);
         
         float[] sensor_reading;
@@ -23,6 +23,11 @@ public class Proportional
         sensor_reading = new float[sampleSize];
         
         PIDController controller = new PIDController(1.0f, 0.0f, 0.0f);
+        
+        left.setSpeed(BASE_SPEED);
+        right.setSpeed(BASE_SPEED);
+        left.forward();
+        right.forward();
         
         long t_last = System.nanoTime();
         

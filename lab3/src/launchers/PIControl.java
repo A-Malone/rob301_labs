@@ -24,6 +24,11 @@ public class PIControl
         
         PIDController controller = new PIDController(1.0f, 1.0f, 0.0f);
         
+        left.setSpeed(BASE_SPEED);
+        right.setSpeed(BASE_SPEED);
+        left.forward();
+        right.forward();
+        
         long t_last = System.nanoTime();
         
         while(true)
