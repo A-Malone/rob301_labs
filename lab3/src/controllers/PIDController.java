@@ -8,8 +8,9 @@ public class PIDController
     float ki = 0.0f;
 
     // CONTROL VARIABLES
-    float e_total = 0.0f;
+    float e_integ = 0.0f;
     float e_last = 0.0f;
+    float e_deriv = 0.0f;
 
     public PIDController()
     {   
@@ -36,17 +37,27 @@ public class PIDController
     {
         kd = k;
     }
+    
+    public float get_derivative_error()
+    {
+        return e_deriv;
+    }
+    
+    public float get_integral_error()
+    {
+        return e_integ;
+    }
 
     public float step(double h, float error)
     {
         // Euler forward
-        e_total += h * error;
+        e_integ += h * error;
 
         // Numerical differentiation
-        float e_deriv = (float)((error - e_last) / h);
+        e_deriv = (float)((error - e_last) / h);
 
         // Calculate and apply input
-        float correction = kp * error + ki * e_total + kd * e_deriv;
+        float correction = kp * error + ki * e_integ + kd * e_deriv;
 
         // Update the derivative value
         e_last = error;
