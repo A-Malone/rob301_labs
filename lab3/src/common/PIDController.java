@@ -47,6 +47,11 @@ public class PIDController
     {
         return e_integ;
     }
+    
+    public void zero_integral()
+    {
+        e_integ = 0.0f;
+    }
 
     public float step(double h, float error)
     {
@@ -56,6 +61,8 @@ public class PIDController
         // Numerical differentiation
         e_deriv = (float)((error - e_last) / h);
 
+        System.out.format("%2.2f %2.2f %2.2f%n", kp*error, ki * e_integ, kd * e_deriv);
+        
         // Calculate and apply input
         float correction = kp * error + ki * e_integ + kd * e_deriv;
 

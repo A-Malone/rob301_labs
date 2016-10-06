@@ -12,7 +12,7 @@ import lejos.hardware.sensor.EV3ColorSensor;
 
 public class PIControl
 {
-    static final float BASE_SPEED = 50;
+    static final float BASE_SPEED = 250;
     
     public static void main(String[] args) throws Exception
     {
@@ -24,7 +24,7 @@ public class PIControl
         int sampleSize = color.sampleSize();
         sensor_reading = new float[sampleSize];
         
-        PIDController controller = new PIDController(1.0f, 1.0f, 0.0f);
+        PIDController controller = new PIDController(3.0f, 3.0f, 0.0f);
         
         left.setSpeed(BASE_SPEED);
         right.setSpeed(BASE_SPEED);
@@ -33,8 +33,17 @@ public class PIControl
         
         long t_last = System.nanoTime();
         
+        while(!Button.UP.isDown())
+        {
+            Thread.sleep(20);
+        }
+        
         while(!Button.ENTER.isDown())
         {
+            if (Button.LEFT.isDown())
+            {
+                controller.zero_integral();
+            }
             color.getRedMode().fetchSample(sensor_reading, 0);
             float val = sensor_reading[0];
             float error = SensorUtils.get_error(val);
@@ -47,6 +56,7 @@ public class PIControl
             float sright = BASE_SPEED * (1.0f + correction);
             MotorUtils.setSpeeds(left, right, sleft, sright);
         }
+        color.close();
     }
 }
 
