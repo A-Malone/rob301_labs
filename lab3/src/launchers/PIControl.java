@@ -1,7 +1,9 @@
 package launchers;
 
-import controllers.PIDController;
-import controllers.SensorUtils;
+import common.MotorUtils;
+import common.PIDController;
+import common.SensorUtils;
+import lejos.hardware.Button;
 import lejos.hardware.motor.Motor;
 import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.port.SensorPort;
@@ -31,7 +33,7 @@ public class PIControl
         
         long t_last = System.nanoTime();
         
-        while(true)
+        while(!Button.ENTER.isDown())
         {
             color.getRedMode().fetchSample(sensor_reading, 0);
             float val = sensor_reading[0];
@@ -41,8 +43,9 @@ public class PIControl
             float correction = controller.step((t_curr - t_last)/(Math.pow(10, 9)), error);
             t_last = t_curr;
             
-            left.setSpeed(BASE_SPEED * (1 - correction));
-            right.setSpeed(BASE_SPEED * (1 + correction));
+            float sleft = BASE_SPEED * (1.0f - correction);
+            float sright = BASE_SPEED * (1.0f + correction);
+            MotorUtils.setSpeeds(left, right, sleft, sright);
         }
     }
 }
