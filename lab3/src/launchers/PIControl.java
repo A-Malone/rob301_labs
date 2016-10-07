@@ -31,12 +31,12 @@ public class PIControl
         left.forward();
         right.forward();
         
-        long t_last = System.nanoTime();
-        
         while(!Button.UP.isDown())
         {
             Thread.sleep(20);
         }
+        
+        long t_last = System.nanoTime();
         
         while(!Button.ENTER.isDown())
         {

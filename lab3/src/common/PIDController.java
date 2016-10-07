@@ -38,6 +38,21 @@ public class PIDController
         kd = k;
     }
     
+    public float get_proportional()
+    {
+        return kp;
+    }
+
+    public float get_integral()
+    {
+        return ki;
+    }
+
+    public float get_derivative()
+    {
+        return kd;
+    }
+    
     public float get_derivative_error()
     {
         return e_deriv;
