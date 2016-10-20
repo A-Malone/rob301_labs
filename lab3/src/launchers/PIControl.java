@@ -24,7 +24,7 @@ public class PIControl
         int sampleSize = color.sampleSize();
         sensor_reading = new float[sampleSize];
         
-        PIDController controller = new PIDController(3.0f, 3.0f, 0.0f);
+        PIDController controller = new PIDController(2.94f, 3.36f, 0.0f);
         
         left.setSpeed(BASE_SPEED);
         right.setSpeed(BASE_SPEED);

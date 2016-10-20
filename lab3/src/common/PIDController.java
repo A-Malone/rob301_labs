@@ -11,6 +11,8 @@ public class PIDController
     float e_integ = 0.0f;
     float e_last = 0.0f;
     float e_deriv = 0.0f;
+    
+    float SAT_VAL = 0.10f;
 
     public PIDController()
     {   
@@ -72,11 +74,13 @@ public class PIDController
     {
         // Euler forward
         e_integ += h * error;
+        e_integ  = Math.min(e_integ, SAT_VAL);
+        e_integ  = Math.max(e_integ, -SAT_VAL);
 
         // Numerical differentiation
         e_deriv = (float)((error - e_last) / h);
 
-        System.out.format("%2.2f %2.2f %2.2f%n", kp*error, ki * e_integ, kd * e_deriv);
+        //System.out.format("%2.2f %2.2f %2.2f%n", kp*error, ki * e_integ, kd * e_deriv);
         
         // Calculate and apply input
         float correction = kp * error + ki * e_integ + kd * e_deriv;
