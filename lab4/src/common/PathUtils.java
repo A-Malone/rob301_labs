@@ -21,7 +21,19 @@ public class PathUtils {
 	public static int get_dist_to(int x1, int y1, int x2, int y2)
     {
         return (int)Math.round(Math.sqrt(Math.pow(y2-y1,2) + Math.pow(x2-x1, 2)));
-    }	
+    }
+	
+	public static float get_distance_travelled(NXTRegulatedMotor motor)
+	{
+	    return (float)Math.toRadians(motor.getTachoCount())*wheel_radius;
+	}
+	
+	public static int get_smallest_equivalent_angle(int theta)
+	{
+	    return (int)Math.round(Math.toDegrees(
+	            Math.atan2(Math.sin(Math.toRadians(theta)), Math.cos(Math.toRadians(theta)))
+	            ));
+	}
 	
 	public static void pivot(
 	        NXTRegulatedMotor left,

@@ -1,7 +1,5 @@
 package launchers;
 
-import java.util.ArrayList;
-
 import common.PathUtils;
 import lejos.hardware.Button;
 import lejos.hardware.motor.Motor;
@@ -31,11 +29,7 @@ public class FourPoint {
             int[] goal = states[i];
 
             // Pivot
-            int theta_path = PathUtils.get_angle_to(curr[0], curr[1], goal[0], goal[1]) - curr[2];
-            if (theta_path == 360 || theta_path == -360)
-            {
-                theta_path = 0;
-            }
+            int theta_path = PathUtils.get_smallest_equivalent_angle(PathUtils.get_angle_to(curr[0], curr[1], goal[0], goal[1]) - curr[2]);            
             
             System.out.println(theta_path);
             left.setSpeed(100);
@@ -52,11 +46,7 @@ public class FourPoint {
             Delay.msDelay(200);
 
             // Pivot
-            int theta_goal = goal[2] - (theta_path + curr[2]);
-            if (theta_goal == 360 || theta_goal == -360)
-            {
-                theta_goal = 0;
-            }
+            int theta_goal = PathUtils.get_smallest_equivalent_angle(goal[2] - (theta_path + curr[2]));            
             left.setSpeed(100);
             right.setSpeed(100);
             PathUtils.pivot(left, right, theta_goal);
