@@ -20,7 +20,7 @@ public class Tasks
     // ------------------------------------------------------------
 
     // The initial width of the band to scan for the pizza
-    private static int PIZZA_SCAN_BAND_WIDTH = 10;
+    private static int PIZZA_SCAN_BAND_WIDTH = 15;
 
     // The initial estimate of the pizza's distance
     private static float PIZZA_DISTANCE_ESTIMATE = 100;
@@ -73,9 +73,10 @@ public class Tasks
 
                 // Check if we found the pizza
                 if (best_index != -1)
-                {
+                {   
                     pizza_relative_heading = scan_results.index_to_relative_heading(best_index);
                     pizza_dist = best_distance;
+                    System.out.println("Pizza found " + pizza_relative_heading + ", " + ppv.getPose().getHeading());
                 }
                 else
                 {
@@ -87,7 +88,7 @@ public class Tasks
             // STEP 1.2: Rotate towards pizza
             if (success)
             {
-                pilot.rotate(pizza_relative_heading);
+                pilot.rotate(-pizza_relative_heading);
             }
 
             // STEP 1.2: Move towards pizza, checking to make sure we don't lose

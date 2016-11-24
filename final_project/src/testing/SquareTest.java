@@ -1,4 +1,4 @@
-package launchers;
+package testing;
 
 import common.GyroPoseProvider;
 import common.RobotUtils;
@@ -13,7 +13,7 @@ import lejos.robotics.navigation.Pose;
 import lejos.robotics.navigation.Waypoint;
 import lejos.utility.Delay;
 
-public class GyroTest
+public class SquareTest
 {
     public static void main(String[] args) throws Exception
     {
@@ -27,7 +27,7 @@ public class GyroTest
         EV3GyroSensor gyro = new EV3GyroSensor(SensorPort.S1);
 
         // Create the pilot based on the Robot's parameters
-        DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.wheel_track_avg, left,
+        DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.wheel_track_width, left,
                 right);
 
         // Pass in the pilot as a MoveProvider, and the Gyro

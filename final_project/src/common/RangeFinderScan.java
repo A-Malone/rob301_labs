@@ -34,8 +34,11 @@ public class RangeFinderScan
     public void add_reading(float heading, float range)
     {
         int index = relative_heading_to_index(heading);
-        range_spectrum[index][0] += range;
-        range_spectrum[index][1] += 1;
+        if (index != -1)
+        {
+            range_spectrum[index][0] += range;
+            range_spectrum[index][1] += 1;
+        }
     }
 
     private void normalize()
@@ -55,7 +58,12 @@ public class RangeFinderScan
     
     public int relative_heading_to_index(float heading)
     {
-        return (int) Math.round(heading) + scan_band_halfwidth;
+        int index = (int) Math.round(heading) + scan_band_halfwidth;
+        if (index < 0 || index >= range_spectrum.length)
+        {
+            return -1;
+        }
+        return index;
     }
 
     // ---- STATIC FUNCTIONS
