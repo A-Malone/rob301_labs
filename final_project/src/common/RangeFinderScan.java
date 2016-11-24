@@ -5,6 +5,7 @@ import lejos.robotics.SampleProvider;
 import lejos.robotics.localization.PoseProvider;
 import lejos.robotics.navigation.DifferentialPilot;
 import lejos.robotics.navigation.Pose;
+import lejos.robotics.navigation.RotateMoveController;
 
 public class RangeFinderScan
 {
@@ -60,7 +61,7 @@ public class RangeFinderScan
     // ---- STATIC FUNCTIONS
 
     // Utility function
-    private static boolean rotate_and_poll(RangeFinderScan scan_results, DifferentialPilot pilot, PoseProvider ppv,
+    private static boolean rotate_and_poll(RangeFinderScan scan_results, RotateMoveController pilot, PoseProvider ppv,
             SampleProvider range_finder, int angle)
     {
         boolean success = true;
@@ -76,6 +77,7 @@ public class RangeFinderScan
             if (Button.ESCAPE.isDown())
             {
                 success = false;
+                pilot.stop();
                 break;
             }
 
@@ -93,7 +95,7 @@ public class RangeFinderScan
     }
 
     // Static constructor
-    public static RangeFinderScan scan(DifferentialPilot pilot, PoseProvider ppv, SampleProvider range_finder,
+    public static RangeFinderScan scan(RotateMoveController pilot, PoseProvider ppv, SampleProvider range_finder,
             int scan_bandwidth)
     {
         boolean success = true;
