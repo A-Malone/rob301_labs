@@ -1,6 +1,6 @@
 package testing;
 
-import common.GyroPoseProvider;
+import common.GyrodometryPoseProvider;
 import common.RobotUtils;
 import lejos.hardware.Button;
 import lejos.hardware.motor.Motor;
@@ -31,7 +31,7 @@ public class SquareTest
                 right);
 
         // Pass in the pilot as a MoveProvider, and the Gyro
-        GyroPoseProvider gyro_pose = new GyroPoseProvider(pilot, gyro);
+        GyrodometryPoseProvider gyro_pose = new GyrodometryPoseProvider(pilot, gyro);
 
         // Create the navigator used to perform the operations described
         Navigator nav = new Navigator(pilot, gyro_pose);
