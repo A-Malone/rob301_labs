@@ -1,6 +1,5 @@
 package common;
 
-import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.geometry.Point;
 import lejos.robotics.localization.PoseProvider;
@@ -8,41 +7,47 @@ import lejos.robotics.navigation.Move;
 import lejos.robotics.navigation.MoveListener;
 import lejos.robotics.navigation.MoveProvider;
 import lejos.robotics.navigation.Pose;
+import lejos.utility.KalmanFilter;
+import lejos.utility.Matrix;
 
-/**
- * Pose Provider using the EV3GyroSensor
- */
-public class GyrodometryPoseProvider implements PoseProvider, MoveListener, SampleProvider
+public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, SampleProvider
 {
-    private static final float gyro_threshold = 2f;
-
-    private EV3GyroSensor gyro;
-    private SampleProvider gyro_angle;
-
+    private SampleProvider direction_finder;
+    private KalmanFilter kalman_filter;
+    
     private float x = 0, y = 0, heading = 0;
-    private float gyro_angle0, odo_angle0, distance0;
+    private float direction_angle0, odo_angle0, distance0;
     MoveProvider mp;
     boolean current = true;
 
-    public GyrodometryPoseProvider(MoveProvider mp, EV3GyroSensor g)
+    public DirectionKalmanPoseProvider(MoveProvider mp, SampleProvider direction_finder)
     {
+        this.mp = mp;
         mp.addMoveListener(this);
 
-        gyro = g;
-
         // Setup gyro for readings
-        gyro_angle = gyro.getAngleMode();
+        this.direction_finder = direction_finder;
 
         // Do a quick reading to work out the kinks
-        get_gyro_angle();
+        get_direction_reading();
 
-        this.mp = mp;
+        // Setup the Kalman filter
+        Matrix A = Matrix.identity(3, 3);
+        // Roll the angles into the control input
+        Matrix B = Matrix.identity(3, 3);
+        Matrix Q = new Matrix(new double[][] { { 0.1, 0, 0 }, { 0, 0.1, 0 }, { 0, 0, 0.1 } });
+
+        // 2 Sensors
+        Matrix C = new Matrix(new double[][] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 }, { 1, 0, 0 } });
+        Matrix R = new Matrix(new double[][] { { 0.1, 0, 0, 0 }, { 0, 0.1, 0, 0 }, { 0, 0, 1, 0 }, { 0, 0, 0, 1 } });
+
+        kalman_filter = new KalmanFilter(A, B, C, Q, R);
     }
 
-    private float get_gyro_angle()
+    private float get_direction_reading()
     {
-        float[] sample = new float[gyro_angle.sampleSize()];
-        gyro_angle.fetchSample(sample, 0);
+        float[] sample = new float[direction_finder.sampleSize()];
+        direction_finder.fetchSample(sample, 0);
         return sample[0];
     }
 
@@ -57,18 +62,12 @@ public class GyrodometryPoseProvider implements PoseProvider, MoveListener, Samp
 
     public synchronized void moveStarted(Move move, MoveProvider mp)
     {
-        gyro_angle0 = get_gyro_angle();
+        direction_angle0 = get_direction_reading();
         odo_angle0 = 0;
         distance0 = 0;
         current = false;
         this.mp = mp;
-    }
-
-    public synchronized void setPose(Pose aPose)
-    {
-        setPosition(aPose.getLocation());
-        setHeading(aPose.getHeading());
-    }
+    }    
 
     public void moveStopped(Move move, MoveProvider mp)
     {
@@ -79,31 +78,36 @@ public class GyrodometryPoseProvider implements PoseProvider, MoveListener, Samp
     {
         float odo_angle_delta = event.getAngleTurned() - odo_angle0;
 
-        float gyro_angle = get_gyro_angle();
-        float gyro_delta = gyro_angle - gyro_angle0;
-
-        float angle_delta = (gyro_delta > gyro_threshold) ? gyro_delta : odo_angle_delta;
+        float gyro_angle = get_direction_reading();
+        float gyro_delta = gyro_angle - direction_angle0;
 
         float distance = event.getDistanceTraveled() - distance0;
         double dx = 0, dy = 0;
         double headingRad = (Math.toRadians(heading));
 
-        if (event.getMoveType() == Move.MoveType.TRAVEL || Math.abs(angle_delta) < 0.2f)
+        if (event.getMoveType() == Move.MoveType.TRAVEL || Math.abs(odo_angle_delta) < 0.2f)
         {
             dx = (distance) * (float) Math.cos(headingRad);
             dy = (distance) * (float) Math.sin(headingRad);
         } else if (event.getMoveType() == Move.MoveType.ARC)
         {
-            double turnRad = Math.toRadians(angle_delta);
+            double turnRad = Math.toRadians(odo_angle_delta);
             double radius = distance / turnRad;
             dy = radius * (Math.cos(headingRad) - Math.cos(headingRad + turnRad));
             dx = radius * (Math.sin(headingRad + turnRad) - Math.sin(headingRad));
         }
 
-        x += dx;
-        y += dy;
-        heading = normalize(heading + angle_delta); // keep angle between -180
-                                                    // and 180
+        // Update the Kalman filter
+        Matrix control = new Matrix(new double[][] { { dx, dy, odo_angle_delta } });
+        Matrix measurement = new Matrix(
+                new double[][] { { x + dx, y + dy, heading + odo_angle_delta, heading + gyro_delta } });
+        kalman_filter.update(control, measurement);
+        
+        Matrix estimate = kalman_filter.getMean();
+        x = (float) estimate.get(0, 0);
+        y = (float) estimate.get(1, 0);
+        heading = (float) estimate.get(2, 0);
+
         odo_angle0 = event.getAngleTurned();
         distance0 = event.getDistanceTraveled();
         current = !event.isMoving();
@@ -148,5 +152,12 @@ public class GyrodometryPoseProvider implements PoseProvider, MoveListener, Samp
         sample[offset + 0] = x;
         sample[offset + 1] = y;
         sample[offset + 2] = heading;
+    }
+
+    @Override
+    public void setPose(Pose aPose)
+    {
+        setPosition(aPose.getLocation());
+        setHeading(aPose.getHeading());
     }
 }
