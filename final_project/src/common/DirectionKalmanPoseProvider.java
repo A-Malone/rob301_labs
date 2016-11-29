@@ -103,6 +103,7 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
                 new double[][] { { x + dx, y + dy, heading + odo_angle_delta, heading + gyro_delta } });
         kalman_filter.update(control, measurement);
         
+        // Update our local cache of the current Kalman filter estimate
         Matrix estimate = kalman_filter.getMean();
         x = (float) estimate.get(0, 0);
         y = (float) estimate.get(1, 0);
@@ -127,12 +128,32 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
     {
         x = p.x;
         y = p.y;
+        
+        Matrix covariance = kalman_filter.getCovariance();
+        covariance.set(0, 0, 0);
+        covariance.set(1, 1, 0);
+        
+        Matrix mean = kalman_filter.getMean();
+        mean.set(0, 0, x);
+        mean.set(1, 0, y);
+        
+        kalman_filter.setState(mean, covariance);
+        
         current = true;
     }
 
     private void setHeading(float heading)
     {
         this.heading = heading;
+        
+        Matrix covariance = kalman_filter.getCovariance();
+        covariance.set(2, 2, 0);        
+        
+        Matrix mean = kalman_filter.getMean();
+        mean.set(2, 0, heading);
+        
+        kalman_filter.setState(mean, covariance);
+        
         current = true;
     }
 
