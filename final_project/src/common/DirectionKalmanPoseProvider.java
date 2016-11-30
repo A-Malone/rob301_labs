@@ -14,9 +14,17 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
 {
     private SampleProvider direction_finder;
     private KalmanFilter kalman_filter;
-    
+
+    // The current estimate of the state
     private float x = 0, y = 0, heading = 0;
-    private float direction_angle0, odo_angle0, distance0;
+
+    // The values at the last measurement
+    private float odo_angle0, distance0;
+
+    // The heading and sensor reading at the start of the move
+    private float start_heading;
+    private float start_sensor_angle;
+
     MoveProvider mp;
     boolean current = true;
 
@@ -62,12 +70,15 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
 
     public synchronized void moveStarted(Move move, MoveProvider mp)
     {
-        direction_angle0 = get_direction_reading();
+        // Initialize the starting heading
+        start_heading = heading;
+        start_sensor_angle = get_direction_reading();
+        
         odo_angle0 = 0;
         distance0 = 0;
         current = false;
         this.mp = mp;
-    }    
+    }
 
     public void moveStopped(Move move, MoveProvider mp)
     {
@@ -76,11 +87,16 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
 
     private synchronized void updatePose(Move event)
     {
+        // ODOMETRY
         float odo_angle_delta = event.getAngleTurned() - odo_angle0;
 
-        float gyro_angle = get_direction_reading();
-        float gyro_delta = gyro_angle - direction_angle0;
+        // DIRECTION SENSOR
+        // Calculate angle relative to the start of the move in order to provide consistent readings
+        float sensor_angle = get_direction_reading();
+        float sensor_relative_angle = sensor_angle - start_sensor_angle;
 
+        // From OdometryPoseProvider
+        // ------------------------------------------------------------
         float distance = event.getDistanceTraveled() - distance0;
         double dx = 0, dy = 0;
         double headingRad = (Math.toRadians(heading));
@@ -96,13 +112,14 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
             dy = radius * (Math.cos(headingRad) - Math.cos(headingRad + turnRad));
             dx = radius * (Math.sin(headingRad + turnRad) - Math.sin(headingRad));
         }
+        // ------------------------------------------------------------
 
         // Update the Kalman filter
         Matrix control = new Matrix(new double[][] { { dx, dy, odo_angle_delta } });
         Matrix measurement = new Matrix(
-                new double[][] { { x + dx, y + dy, heading + odo_angle_delta, heading + gyro_delta } });
+                new double[][] { { x + dx, y + dy, heading + odo_angle_delta, start_heading + sensor_relative_angle } });
         kalman_filter.update(control, measurement);
-        
+
         // Update our local cache of the current Kalman filter estimate
         Matrix estimate = kalman_filter.getMean();
         x = (float) estimate.get(0, 0);
@@ -128,32 +145,32 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
     {
         x = p.x;
         y = p.y;
-        
+
         Matrix covariance = kalman_filter.getCovariance();
         covariance.set(0, 0, 0);
         covariance.set(1, 1, 0);
-        
+
         Matrix mean = kalman_filter.getMean();
         mean.set(0, 0, x);
         mean.set(1, 0, y);
-        
+
         kalman_filter.setState(mean, covariance);
-        
+
         current = true;
     }
 
     private void setHeading(float heading)
     {
         this.heading = heading;
-        
+
         Matrix covariance = kalman_filter.getCovariance();
-        covariance.set(2, 2, 0);        
-        
+        covariance.set(2, 2, 0);
+
         Matrix mean = kalman_filter.getMean();
         mean.set(2, 0, heading);
-        
+
         kalman_filter.setState(mean, covariance);
-        
+
         current = true;
     }
 

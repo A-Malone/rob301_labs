@@ -1,7 +1,5 @@
 package testing;
 
-import java.awt.Button;
-
 import common.RobotUtils;
 import lejos.hardware.motor.Motor;
 import lejos.hardware.motor.NXTRegulatedMotor;
@@ -19,12 +17,12 @@ public class PilotTest
         NXTRegulatedMotor right = Motor.B;
 
         // Create the pilot based on the Robot's parameters
-        DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.wheel_track_width, left,
+        DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.get_track_width(), left,
                 right);
 
         pilot.setTravelSpeed(15);
         pilot.setRotateSpeed(180 / 4);
-        
+
         while (!lejos.hardware.Button.ENTER.isDown())
         {
             Delay.msDelay(20);
@@ -33,7 +31,7 @@ public class PilotTest
         boolean success = true;
         for (int i = 0; i < 4; i++)
         {
-            if(success)
+            if (success)
             {
                 pilot.travel(50, true);
             }
@@ -41,8 +39,8 @@ public class PilotTest
             {
                 success = success && !lejos.hardware.Button.ESCAPE.isDown();
             }
-            
-            if(success)
+
+            if (success)
             {
                 pilot.rotate(180);
             }

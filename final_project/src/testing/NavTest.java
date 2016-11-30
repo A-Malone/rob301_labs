@@ -18,7 +18,7 @@ public class NavTest
         NXTRegulatedMotor right = Motor.B;
 
         // Create the pilot based on the Robot's parameters
-        DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.wheel_track_corrected,
+        DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.get_track_width(),
                 left, right);
 
         pilot.setAcceleration(30);
