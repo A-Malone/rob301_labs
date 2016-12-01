@@ -1,7 +1,7 @@
 package testing;
 
 import common.RangeFinderScan;
-import common.RobotUtils;
+import common.Robot;
 import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.NXTRegulatedMotor;
@@ -18,34 +18,21 @@ public class ScannerTest
     {
         // ---- INIT
 
-        // Get the motors
-        NXTRegulatedMotor left = RobotUtils.LEFT_MOTOR;
-        NXTRegulatedMotor right = RobotUtils.RIGHT_MOTOR;
-        
-        // Get the Ultrasound
-        EV3UltrasonicSensor ultra = new EV3UltrasonicSensor(RobotUtils.ULTRASOUND_PORT);
-        SampleProvider rangefinder = ultra.getDistanceMode();
-
-        // Get the gyro
-        EV3GyroSensor gyro = new EV3GyroSensor(RobotUtils.GYRO_PORT);
-
-        // Create the pilot based on the Robot's parameters
-        DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.get_track_width(), left,
-                right);
+        // Create the robot with default parameters
+        Robot robot = new Robot();
 
         // Pass in the pilot as a MoveProvider, and the Gyro
-        DirectionKalmanPoseProvider ppv = new DirectionKalmanPoseProvider(pilot, gyro.getAngleMode());
+        DirectionKalmanPoseProvider gyro_pose = new DirectionKalmanPoseProvider(robot.pilot, robot.gyro);
+        robot.setPoseProvider(gyro_pose);
+        
+        robot.pilot.setTravelSpeed(15);
+        robot.pilot.setRotateSpeed(180 / 4);
+        
 
-        pilot.setTravelSpeed(15);
-        pilot.setRotateSpeed(180 / 4);
-
-        while (!lejos.hardware.Button.ENTER.isDown())
-        {
-            Delay.msDelay(20);
-        }
+        Button.ENTER.waitForPressAndRelease();
 
         boolean success = true;
-        RangeFinderScan scan = RangeFinderScan.scan(pilot, ppv, rangefinder, 160);
+        RangeFinderScan scan = RangeFinderScan.scan(robot, 160);
         success = success && (scan != null);
         
         if(success)
@@ -59,7 +46,10 @@ public class ScannerTest
                 }
             }
         }
-                
-        Button.ESCAPE.waitForPressAndRelease();
+        
+        if (success)
+        {   
+            Button.ESCAPE.waitForPressAndRelease();
+        }
     }
 }

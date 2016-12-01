@@ -1,10 +1,11 @@
 package testing;
 
-import common.RobotUtils;
+import common.Robot;
 import lejos.hardware.motor.Motor;
 import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.robotics.navigation.DifferentialPilot;
 import lejos.utility.Delay;
+import localization.DirectionKalmanPoseProvider;
 
 public class PilotTest
 {
@@ -12,16 +13,8 @@ public class PilotTest
     {
         // ---- INIT
 
-        // Get the motors
-        NXTRegulatedMotor left = RobotUtils.LEFT_MOTOR;
-        NXTRegulatedMotor right = RobotUtils.RIGHT_MOTOR;
-
-        // Create the pilot based on the Robot's parameters
-        DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.get_track_width(), left,
-                right);
-
-        pilot.setTravelSpeed(15);
-        pilot.setRotateSpeed(180 / 4);
+        // Create the robot with default parameters
+        Robot robot = new Robot();
 
         while (!lejos.hardware.Button.ENTER.isDown())
         {
@@ -33,18 +26,20 @@ public class PilotTest
         {
             if (success)
             {
-                pilot.travel(50, true);
+                robot.pilot.travel(50, true);
             }
-            while (pilot.isMoving() && success)
+
+            while (robot.pilot.isMoving() && success)
             {
                 success = success && !lejos.hardware.Button.ESCAPE.isDown();
             }
 
             if (success)
             {
-                pilot.rotate(180);
+                robot.pilot.rotate(180);
             }
-            while (pilot.isMoving() && success)
+
+            while (robot.pilot.isMoving() && success)
             {
                 success = success && !lejos.hardware.Button.ESCAPE.isDown();
             }

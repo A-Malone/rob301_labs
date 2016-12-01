@@ -9,10 +9,10 @@ import lejos.robotics.navigation.RotateMoveController;
 
 public class RangeFinderScan
 {
-    public int scan_bandwidth;    
+    public int scan_bandwidth;
     public float[][] range_spectrum;
     public Pose origin;
-    
+
     private int scan_band_halfwidth;
 
     public RangeFinderScan(Pose origin, int scan_bandwidth)
@@ -50,12 +50,12 @@ public class RangeFinderScan
                     : Float.MAX_VALUE;
         }
     }
-    
+
     public float index_to_relative_heading(int index)
     {
         return (float) (index - scan_band_halfwidth);
     }
-    
+
     public int relative_heading_to_index(float heading)
     {
         int index = (int) Math.round(heading) + scan_band_halfwidth;
@@ -103,11 +103,13 @@ public class RangeFinderScan
     }
 
     // Static constructor
-    public static RangeFinderScan scan(RotateMoveController pilot, PoseProvider ppv, SampleProvider range_finder,
-            int scan_bandwidth)
+    public static RangeFinderScan scan(Robot robot, int scan_bandwidth)
     {
         boolean success = true;
+        
+        SampleProvider range_finder = robot.ultra.getDistanceMode();
 
+        PoseProvider ppv = robot.pose_provider;
         Pose start_pose = ppv.getPose();
 
         RangeFinderScan scan_results = new RangeFinderScan(start_pose, scan_bandwidth);
@@ -115,20 +117,21 @@ public class RangeFinderScan
         int scan_band_halfwidth = scan_bandwidth / 2;
 
         // Rotate left by scan_band_halfwidth
-        success = success && rotate_and_poll(scan_results, pilot, ppv, range_finder, scan_band_halfwidth);
+        success = success && rotate_and_poll(scan_results, robot.pilot, ppv, range_finder, scan_band_halfwidth);
 
         // Rotate right by 2*scan_band
-        success = success && rotate_and_poll(scan_results, pilot, ppv, range_finder, -scan_bandwidth);
+        success = success && rotate_and_poll(scan_results, robot.pilot, ppv, range_finder, -scan_bandwidth);
 
         // Rotate left by scan_band
-        success = success && rotate_and_poll(scan_results, pilot, ppv, range_finder, scan_band_halfwidth);
+        success = success && rotate_and_poll(scan_results, robot.pilot, ppv, range_finder, scan_band_halfwidth);
 
         // Return the normalized results or null depending on success
         if (success)
         {
             scan_results.normalize();
             return scan_results;
-        } else
+        }
+        else
         {
             return null;
         }

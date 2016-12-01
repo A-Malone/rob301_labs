@@ -2,7 +2,7 @@ package tasks;
 
 import common.BoardUtils.PizzaPedestal;
 import common.RangeFinderScan;
-import common.RobotUtils;
+import common.Robot;
 import lejos.hardware.Button;
 import lejos.hardware.motor.Motor;
 import lejos.hardware.motor.NXTRegulatedMotor;
@@ -33,25 +33,24 @@ public class PizzaPickupTask
     private static float PIZZA_BACKUP_DISTANCE = 5;
 
     // STEP 1: Zero in on pizza
-    public static boolean move_to_pizza_task(Navigator nav, RotateMoveController pilot, SampleProvider range_finder,
-            PizzaPedestal pizza_pedestal)
+    public static boolean move_to_pizza_task(Robot robot, PizzaPedestal pizza_pedestal)
     {
         // STEP 1.0: Init, and turn towards Pizza
         boolean success = true;
 
-        PoseProvider ppv = nav.getPoseProvider();
+        PoseProvider ppv = robot.pose_provider;
         Pose current = ppv.getPose();
         
         float relative_heading = current.relativeBearing(pizza_pedestal.location);
-        pilot.rotate(relative_heading, true);
+        robot.pilot.rotate(relative_heading, true);
         
-        while (pilot.isMoving())
+        while (robot.pilot.isMoving())
         {
             // Break early condition
             if (Button.ESCAPE.isDown())
             {
                 success = false;
-                pilot.stop();
+                robot.pilot.stop();
                 break;
             }
         }
@@ -62,12 +61,12 @@ public class PizzaPickupTask
 
         // Search parameters
         int search_width = PIZZA_SCAN_BAND_WIDTH;
-        float last_estimated_distance = PIZZA_DISTANCE_ESTIMATE;        
+        float last_estimated_distance = PIZZA_DISTANCE_ESTIMATE;
         
         while (success)
         {
             // STEP 1.1: Identify heading to pizza
-            RangeFinderScan scan_results = RangeFinderScan.scan(pilot, ppv, range_finder, search_width);
+            RangeFinderScan scan_results = RangeFinderScan.scan(robot, search_width);
             success = success && (scan_results != null);
 
             if (success)
@@ -104,25 +103,25 @@ public class PizzaPickupTask
             // STEP 1.2: Rotate towards pizza
             if (success)
             {
-                pilot.rotate(-pizza_relative_heading);
+                robot.pilot.rotate(-pizza_relative_heading);
             }
 
             // STEP 1.2: Move towards pizza, checking to make sure we don't lose
             // alignment, or get too close.
-            pilot.travel(pizza_dist * 100 - PIZZA_PICKUP_DISTANCE, true);
-            SampleProvider average_range = new MeanFilter(range_finder, 3);
+            robot.pilot.travel(pizza_dist * 100 - PIZZA_PICKUP_DISTANCE, true);
+            SampleProvider average_range = new MeanFilter(robot.ultra.getDistanceMode(), 3);
 
-            while (pilot.isMoving())
+            while (robot.pilot.isMoving())
             {
                 // Break early condition
                 if (Button.ESCAPE.isDown())
                 {
                     success = false;
-                    pilot.stop();
+                    robot.pilot.stop();
                     break;
                 }
 
-                float est_goal_distance = last_estimated_distance - pilot.getMovement().getDistanceTraveled();
+                float est_goal_distance = last_estimated_distance - robot.pilot.getMovement().getDistanceTraveled();
 
                 float[] sensor_reading = new float[average_range.sampleSize()];
                 average_range.fetchSample(sensor_reading, 0);
@@ -132,7 +131,7 @@ public class PizzaPickupTask
                 {
                     // We've lost lock-on on the pizza, re-acquire, and update
                     // our estimate of where it is
-                    pilot.stop();
+                    robot.pilot.stop();
                     last_estimated_distance = est_goal_distance;
                     break;
                 }
@@ -145,23 +144,22 @@ public class PizzaPickupTask
      * Moves to the pizza from a starting location roughly oriented towards the
      * pizza, and picks it up using the claw arm.
      */
-    public static boolean run_task(Navigator nav, RotateMoveController pilot, SampleProvider rangefinder,
-            NXTRegulatedMotor claw, PizzaPedestal pizza_pedestal)
+    public static boolean run_task(Robot robot, PizzaPedestal pizza_pedestal)
     {
         // STEP 0: Init
         boolean success = true;
 
         // STEP 1: Home in on pizza
-        success = success && move_to_pizza_task(nav, pilot, rangefinder, pizza_pedestal);
+        success = success && move_to_pizza_task(robot, pizza_pedestal);
 
         // STEP 2: Turn around to position claw
-        pilot.rotate(180);
+        robot.pilot.rotate(180);
 
         // STEP 3: Back up to pizza
-        pilot.travel(-PIZZA_BACKUP_DISTANCE);
+        robot.pilot.travel(-PIZZA_BACKUP_DISTANCE);
 
         // STEP 4: Close claw
-        RobotUtils.close_claw(claw);
+        robot.close_claw();
 
         return success;
     }

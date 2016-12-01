@@ -1,6 +1,7 @@
 package testing;
 
-import common.RobotUtils;
+import common.Robot;
+import lejos.hardware.Button;
 import lejos.hardware.motor.Motor;
 import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.port.SensorPort;
@@ -11,7 +12,7 @@ import lejos.utility.Delay;
 import lejos.utility.PilotProps;
 
 /**
- * Performs golden sections search to find the value for the track width which
+ * Performs golden section search to find the value for the track width which
  * provides the most error-free rotation according to the gyro.
  */
 public class PilotCorrection
@@ -20,33 +21,27 @@ public class PilotCorrection
     {
         // ---- INIT
 
-        // Get the motors
-        NXTRegulatedMotor left = RobotUtils.LEFT_MOTOR;
-        NXTRegulatedMotor right = RobotUtils.RIGHT_MOTOR;
-
         // Get the gyro
-        EV3GyroSensor gyro = new EV3GyroSensor(RobotUtils.GYRO_PORT);
+        EV3GyroSensor gyro = new EV3GyroSensor(Robot.GYRO_PORT);
         SampleProvider direction = gyro.getAngleMode();
 
-        while (!lejos.hardware.Button.ENTER.isDown())
-        {
-            Delay.msDelay(20);
-        }
+        System.out.println("Press ENTER to start");
+        Button.ENTER.waitForPress();
 
         // Search parameters
         float turn_angle = 720f;
 
         // Define the search range
-        float search_lower = RobotUtils.wheel_track_width / 2f;
-        float search_upper = RobotUtils.wheel_track_width * 1.5f;
-        float search_current = RobotUtils.wheel_track_width;
+        float search_lower = Robot.wheel_track_width / 2f;
+        float search_upper = Robot.wheel_track_width * 1.5f;
+        float search_current = Robot.wheel_track_width;
 
         boolean success = true;
 
         for (int i = 0; i < 10; ++i)
         {
             // Create the pilot based on the current estimate of the parameters
-            DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, search_current, left, right);
+            DifferentialPilot pilot = new DifferentialPilot(Robot.wheel_diameter, search_current, Robot.LEFT_MOTOR, Robot.RIGHT_MOTOR);
             pilot.setRotateSpeed(180 / 4);
 
             // Starting gyro reading

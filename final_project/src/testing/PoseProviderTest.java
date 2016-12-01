@@ -1,6 +1,6 @@
 package testing;
 
-import common.RobotUtils;
+import common.Robot;
 import lejos.hardware.Button;
 import lejos.hardware.motor.Motor;
 import lejos.hardware.motor.NXTRegulatedMotor;
@@ -20,46 +20,34 @@ public class PoseProviderTest
     {
         // ---- INIT
 
-        // Get the motors
-        NXTRegulatedMotor left = RobotUtils.LEFT_MOTOR;
-        NXTRegulatedMotor right = RobotUtils.RIGHT_MOTOR;
-
-        // Get the gyro
-        EV3GyroSensor gyro = new EV3GyroSensor(RobotUtils.GYRO_PORT);
-
-        // Create the pilot based on the Robot's parameters
-        DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.get_track_width(), left,
-                right);
+        // Create the robot with default parameters
+        Robot robot = new Robot();
 
         // Pass in the pilot as a MoveProvider, and the Gyro
-        DirectionKalmanPoseProvider gyro_pose = new DirectionKalmanPoseProvider(pilot, gyro);
-
-        // Create the navigator used to perform the operations described
-        Navigator nav = new Navigator(pilot, gyro_pose);
+        DirectionKalmanPoseProvider gyro_pose = new DirectionKalmanPoseProvider(robot.pilot, robot.gyro);
+        robot.setPoseProvider(gyro_pose);
 
         // ---- DEFINE PATH
 
-        nav.addWaypoint(50, 0);
-        nav.addWaypoint(50, 50);
-        nav.addWaypoint(0, 50);
-        nav.addWaypoint(0, 0);
+        robot.navigator.addWaypoint(50, 0);
+        robot.navigator.addWaypoint(50, 50);
+        robot.navigator.addWaypoint(0, 50);
+        robot.navigator.addWaypoint(0, 0);
 
-        while (!lejos.hardware.Button.ENTER.isDown())
-        {
-            Delay.msDelay(20);
-        }
+        System.out.println("Press ENTER to start");
+        Button.ENTER.waitForPress();
 
         boolean success = true;
 
-        nav.followPath();
-        while (nav.isMoving() && success)
+        robot.navigator.followPath();
+        while (robot.navigator.isMoving() && success)
         {
             success = success && !lejos.hardware.Button.ESCAPE.isDown();
         }
 
         if (!success)
         {
-            nav.stop();
+            robot.navigator.stop();
         }
     }
 }

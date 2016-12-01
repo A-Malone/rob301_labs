@@ -1,10 +1,6 @@
 package testing;
 
-import common.RobotUtils;
-import lejos.hardware.motor.Motor;
-import lejos.hardware.motor.NXTRegulatedMotor;
-import lejos.robotics.navigation.DifferentialPilot;
-import lejos.robotics.navigation.Navigator;
+import common.Robot;
 import lejos.utility.Delay;
 
 public class NavTest
@@ -13,25 +9,12 @@ public class NavTest
     {
         // ---- INIT
 
-        // Get the motors
-        NXTRegulatedMotor left = RobotUtils.LEFT_MOTOR;
-        NXTRegulatedMotor right = RobotUtils.RIGHT_MOTOR;
+        Robot robot = new Robot();
 
-        // Create the pilot based on the Robot's parameters
-        DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.get_track_width(),
-                left, right);
-
-        pilot.setAcceleration(30);
-        pilot.setTravelSpeed(15);
-        pilot.setRotateSpeed(180 / 6);
-
-        // Create the navigator used to perform the operations described
-        Navigator nav = new Navigator(pilot);
-
-        nav.addWaypoint(50, 0);
-        nav.addWaypoint(50, 50);
-        nav.addWaypoint(0, 50);
-        nav.addWaypoint(0, 0);
+        robot.navigator.addWaypoint(50, 0);
+        robot.navigator.addWaypoint(50, 50);
+        robot.navigator.addWaypoint(0, 50);
+        robot.navigator.addWaypoint(0, 0);
 
         while (!lejos.hardware.Button.ENTER.isDown())
         {
@@ -40,15 +23,15 @@ public class NavTest
 
         boolean success = true;
 
-        nav.followPath();
-        while (nav.isMoving() && success)
+        robot.navigator.followPath();
+        while (robot.navigator.isMoving() && success)
         {
             success = success && !lejos.hardware.Button.ESCAPE.isDown();
         }
 
         if (!success)
         {
-            nav.stop();
+            robot.navigator.stop();
         }
     }
 }

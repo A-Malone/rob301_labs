@@ -3,7 +3,7 @@ package tasks;
 import common.BoardUtils.House;
 import common.BoardUtils.Road;
 import common.PIDController;
-import common.RobotUtils;
+import common.Robot;
 import lejos.hardware.Button;
 import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
@@ -25,14 +25,13 @@ public class PizzaDropOffTask
     /**
      * Moves to the drop-off location and drops the pizza
      */
-    public static boolean run_task(Navigator nav, RotateMoveController pilot, EV3UltrasonicSensor ultra,
-            EV3ColorSensor color, NXTRegulatedMotor ultra_motor, NXTRegulatedMotor claw, House house)
+    public static boolean run_task(Robot robot, House house)
     {
         // STEP 0: Init
         boolean success = true;
 
-        PoseProvider ppv = nav.getPoseProvider();
-        SampleProvider range_finder = ultra.getDistanceMode();
+        PoseProvider ppv = robot.navigator.getPoseProvider();
+        SampleProvider range_finder = robot.ultra.getDistanceMode();
 
         SampleProvider average_range = new MeanFilter(range_finder, 3);
         float[] average_reading = new float[average_range.sampleSize()];
@@ -42,24 +41,24 @@ public class PizzaDropOffTask
         // STEP 1: Turn the ultrasound to the correct side
         if (house.left)
         {
-            ultra_motor.rotate(90);
+            robot.ULTRA_MOTOR.rotate(90);
         }
         else
         {
-            ultra_motor.rotate(-90);
+            robot.ULTRA_MOTOR.rotate(-90);
         }
 
         // STEP 2: Drive straight for the several centimeters to avoid counting
         // obstacles at the start of the road
-        pilot.travel(Road.start_offset, true);
+        robot.pilot.travel(Road.start_offset, true);
 
-        while (pilot.isMoving())
+        while (robot.pilot.isMoving())
         {
             // Break early condition
             if (Button.ESCAPE.isDown())
             {
                 success = false;
-                pilot.stop();
+                robot.pilot.stop();
 
                 break;
             }
@@ -68,18 +67,18 @@ public class PizzaDropOffTask
         // STEP 3: Drive straight and count houses as you go
         if (success)
         {
-            pilot.travel(Road.start_offset, true);
+            robot.pilot.travel(Road.start_offset, true);
 
             Pose last_house_pose = null;
             int house_count = 0;
 
-            while (pilot.isMoving())
+            while (robot.pilot.isMoving())
             {
                 // Break early condition
                 if (Button.ESCAPE.isDown())
                 {
                     success = false;
-                    pilot.stop();
+                    robot.pilot.stop();
 
                     break;
                 }
@@ -107,28 +106,28 @@ public class PizzaDropOffTask
             {
                 if (house.left)
                 {
-                    pilot.rotate(-90);
+                    robot.pilot.rotate(-90);
                 }
                 else
                 {
-                    pilot.rotate(90);
+                    robot.pilot.rotate(90);
                 }
                 
-                success = success && RobotUtils.open_claw(claw);
+                success = success && robot.open_claw();
             }
             
             // STEP 5: Return to the start of the road
             if (success)
             {
-                nav.goTo(new Waypoint(house.road.start.getLocation()));
+                robot.navigator.goTo(new Waypoint(house.road.start.getLocation()));
                 
-                while (nav.isMoving())
+                while (robot.navigator.isMoving())
                 {
                     // Break early condition
                     if (Button.ESCAPE.isDown())
                     {
                         success = false;
-                        nav.stop();
+                        robot.navigator.stop();
                         break;
                     }
                 }

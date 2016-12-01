@@ -1,65 +1,62 @@
 package tasks;
 
 import common.RangeFinderScan;
+import common.Robot;
 import lejos.hardware.Button;
-import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.filter.MeanFilter;
 import lejos.robotics.localization.PoseProvider;
-import lejos.robotics.navigation.Navigator;
 import lejos.robotics.navigation.Pose;
-import lejos.robotics.navigation.RotateMoveController;
 import lejos.robotics.navigation.Waypoint;
 
 public class ObstacleAvoidanceTask
 {
     // ------------------------------------------------------------
-    // ---- OBBSTACLE NAVIGATION TASK
+    // ---- OBBSTACLE robot.navigatorIGATION TASK
     // ------------------------------------------------------------
 
     private static final float CRITICAL_OBSTACLE_DISTANCE = 10;
     private static final float MOVEMENT_STEP_SIZE = 50;
     private static final int MOVEMENT_SCAN_BAND_WIDTH = 180;
 
-    public static boolean navigate_to_pose_task(Navigator nav, RotateMoveController pilot, SampleProvider range_finder,
-            Pose destination)
+    public static boolean navigate_to_pose_task(Robot robot,Pose destination)
     {
         // STEP 0: INIT
         boolean success = true;
 
-        PoseProvider ppv = nav.getPoseProvider();
+        PoseProvider ppv = robot.navigator.getPoseProvider();
 
         // Use this for getting distance to obstacles when moving
-        SampleProvider average_range = new MeanFilter(range_finder, 5);
+        SampleProvider average_range = new MeanFilter(robot.ultra.getDistanceMode(), 5);
         float[] average_reading = new float[average_range.sampleSize()];
 
-        nav.addWaypoint(new Waypoint(destination));
-        nav.followPath();
+        robot.navigator.addWaypoint(new Waypoint(destination));
+        robot.navigator.followPath();
 
-        while (success && !nav.pathCompleted())
+        while (success && !robot.navigator.pathCompleted())
         {
             // Step 1.1: Try moving directly to pose if we're not doing anything
             // else
-            if (!pilot.isMoving() && !nav.isMoving())
+            if (!robot.pilot.isMoving() && !robot.navigator.isMoving())
             {
-                nav.followPath();
+                robot.navigator.followPath();
             }
 
             // Step 1.2: If we're about to run into an obstacle activate
             // avoidance
-            while (nav.isMoving() || pilot.isMoving())
+            while (robot.navigator.isMoving() || robot.pilot.isMoving())
             {
                 // Break early condition
                 if (Button.ESCAPE.isDown())
                 {
                     success = false;
-                    if (nav.isMoving())
+                    if (robot.navigator.isMoving())
                     {
-                        nav.stop();
+                        robot.navigator.stop();
                     }
-                    if (pilot.isMoving())
+                    if (robot.pilot.isMoving())
                     {
-                        pilot.stop();
+                        robot.pilot.stop();
                     }
 
                     break;
@@ -71,23 +68,23 @@ public class ObstacleAvoidanceTask
                 // avoidance routine
                 if (average_reading[0] < CRITICAL_OBSTACLE_DISTANCE)
                 {
-                    if (nav.isMoving())
+                    if (robot.navigator.isMoving())
                     {
-                        nav.stop();
+                        robot.navigator.stop();
                     }
-                    if (pilot.isMoving())
+                    if (robot.pilot.isMoving())
                     {
-                        pilot.stop();
+                        robot.pilot.stop();
                     }
                     break;
                 }
             }
 
             // Step 1.3: We've encountered an obstacle, run scan
-            if (success && !nav.pathCompleted())
+            if (success && !robot.navigator.pathCompleted())
             {
                 // Perform scan of the surroundings
-                RangeFinderScan scan_results = RangeFinderScan.scan(pilot, ppv, range_finder, MOVEMENT_SCAN_BAND_WIDTH);
+                RangeFinderScan scan_results = RangeFinderScan.scan(robot, MOVEMENT_SCAN_BAND_WIDTH);
                 success = success && (scan_results != null);
 
                 if (success)
@@ -114,15 +111,15 @@ public class ObstacleAvoidanceTask
                     {
                         float chosen_direction = scan_results.index_to_relative_heading(best_index);
 
-                        // Add another waypoint to the nav
+                        // Add another waypoint to the robot.navigator
                         // Point next_waypoint =
                         // current.pointAt(MOVEMENT_STEP_SIZE,
                         // chosen_direction);
-                        // nav.addWaypoint(new Waypoint(next_waypoint));
+                        // robot.navigator.addWaypoint(new Waypoint(next_waypoint));
 
                         // Start moving in the direction of the best path
-                        pilot.rotate(chosen_direction);
-                        pilot.travel(MOVEMENT_STEP_SIZE, true);
+                        robot.pilot.rotate(chosen_direction);
+                        robot.pilot.travel(MOVEMENT_STEP_SIZE, true);
                     }
                     else
                     {
