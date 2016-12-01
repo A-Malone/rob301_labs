@@ -9,7 +9,7 @@ public class BoardUtils
     /** The roads for drop-off */
     public enum Road
     {
-        RED_ROAD(new Pose(-50, 200, -25), 5), BLUE_ROAD(new Pose(0, 200, 0), 2), GREEN_ROAD(new Pose(50, 200, 25), 3);
+        RED_ROAD(new Pose(38.5f, 214, -25), 5), BLUE_ROAD(new Pose(0, 213, 0), 2), GREEN_ROAD(new Pose(-39, 213, 25), 3);
 
         /** The length of a road */
         public static final int length = 150;
@@ -30,7 +30,7 @@ public class BoardUtils
     /** The pizza pedestal locations */
     public enum PizzaPedestal
     {
-        LEFT(new Point(-100, 10)), RIGHT(new Point(100, 10));
+        LEFT(new Point(-60, 15)), RIGHT(new Point(60, 15));
 
         public Point location;
 
