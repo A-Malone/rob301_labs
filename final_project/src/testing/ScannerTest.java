@@ -1,19 +1,16 @@
 package testing;
 
-import common.DirectionKalmanPoseProvider;
-import common.GyrodometryPoseProvider;
 import common.RangeFinderScan;
 import common.RobotUtils;
 import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
-import lejos.hardware.motor.Motor;
 import lejos.hardware.motor.NXTRegulatedMotor;
-import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.navigation.DifferentialPilot;
 import lejos.utility.Delay;
+import localization.DirectionKalmanPoseProvider;
 
 public class ScannerTest
 {
@@ -22,15 +19,15 @@ public class ScannerTest
         // ---- INIT
 
         // Get the motors
-        NXTRegulatedMotor left = Motor.A;
-        NXTRegulatedMotor right = Motor.B;
+        NXTRegulatedMotor left = RobotUtils.LEFT_MOTOR;
+        NXTRegulatedMotor right = RobotUtils.RIGHT_MOTOR;
         
         // Get the Ultrasound
-        EV3UltrasonicSensor ultrasound_sensor = new EV3UltrasonicSensor(SensorPort.S4);
-        SampleProvider rangefinder = ultrasound_sensor.getDistanceMode();
+        EV3UltrasonicSensor ultra = new EV3UltrasonicSensor(RobotUtils.ULTRASOUND_PORT);
+        SampleProvider rangefinder = ultra.getDistanceMode();
 
         // Get the gyro
-        EV3GyroSensor gyro = new EV3GyroSensor(SensorPort.S1);
+        EV3GyroSensor gyro = new EV3GyroSensor(RobotUtils.GYRO_PORT);
 
         // Create the pilot based on the Robot's parameters
         DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.get_track_width(), left,

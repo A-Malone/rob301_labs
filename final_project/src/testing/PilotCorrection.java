@@ -21,11 +21,11 @@ public class PilotCorrection
         // ---- INIT
 
         // Get the motors
-        NXTRegulatedMotor left = Motor.A;
-        NXTRegulatedMotor right = Motor.B;
+        NXTRegulatedMotor left = RobotUtils.LEFT_MOTOR;
+        NXTRegulatedMotor right = RobotUtils.RIGHT_MOTOR;
 
         // Get the gyro
-        EV3GyroSensor gyro = new EV3GyroSensor(SensorPort.S1);
+        EV3GyroSensor gyro = new EV3GyroSensor(RobotUtils.GYRO_PORT);
         SampleProvider direction = gyro.getAngleMode();
 
         while (!lejos.hardware.Button.ENTER.isDown())

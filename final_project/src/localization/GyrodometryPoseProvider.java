@@ -1,4 +1,4 @@
-package common;
+package localization;
 
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.robotics.SampleProvider;

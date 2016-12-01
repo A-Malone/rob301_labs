@@ -13,8 +13,8 @@ public class PilotTest
         // ---- INIT
 
         // Get the motors
-        NXTRegulatedMotor left = Motor.A;
-        NXTRegulatedMotor right = Motor.B;
+        NXTRegulatedMotor left = RobotUtils.LEFT_MOTOR;
+        NXTRegulatedMotor right = RobotUtils.RIGHT_MOTOR;
 
         // Create the pilot based on the Robot's parameters
         DifferentialPilot pilot = new DifferentialPilot(RobotUtils.wheel_diameter, RobotUtils.get_track_width(), left,

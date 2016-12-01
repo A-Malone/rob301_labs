@@ -1,4 +1,4 @@
-package common;
+package localization;
 
 import lejos.robotics.SampleProvider;
 import lejos.robotics.geometry.Point;

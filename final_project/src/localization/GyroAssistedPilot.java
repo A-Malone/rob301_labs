@@ -1,4 +1,4 @@
-package common;
+package localization;
 
 import lejos.robotics.RegulatedMotor;
 import lejos.robotics.navigation.DifferentialPilot;
