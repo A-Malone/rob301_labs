@@ -39,7 +39,7 @@ public class PilotCorrection
         {
             // Create the pilot based on the current estimate of the parameters
             DifferentialPilot pilot = new DifferentialPilot(Robot.wheel_diameter, search_current, Robot.LEFT_MOTOR, Robot.RIGHT_MOTOR);
-            pilot.setRotateSpeed(180 / 4);
+            pilot.setRotateSpeed(180 / 2);
 
             // Starting gyro reading
             float[] sample = new float[direction.sampleSize() + 1];
@@ -60,16 +60,18 @@ public class PilotCorrection
             // Binary search for the best value
             direction.fetchSample(sample, 1);
             float error = sample[1] - sample[0] - turn_angle;
+            
+            System.out.println(error);
 
-            if (error < 0)
+            if (error > 0)
             {
-                search_upper = search_current;
-                search_current = (search_upper - search_lower) / 2;
+            	search_upper = search_current;
+                search_current = (search_upper + search_lower) / 2;
             }
-            else if (error > 0)
+            else if (error < 0)
             {
                 search_lower = search_current;
-                search_current = (search_upper - search_lower) / 2;
+                search_current = (search_upper + search_lower) / 2;
             }
             else
             {

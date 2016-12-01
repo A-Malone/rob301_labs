@@ -26,6 +26,8 @@ public class PoseProviderTest
         // Pass in the pilot as a MoveProvider, and the Gyro
         DirectionKalmanPoseProvider gyro_pose = new DirectionKalmanPoseProvider(robot.pilot, robot.gyro);
         robot.setPoseProvider(gyro_pose);
+        
+        robot.pilot.setAcceleration((int)(robot.pilot.getTravelSpeed()*2));
 
         // ---- DEFINE PATH
 

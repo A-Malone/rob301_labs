@@ -27,10 +27,10 @@ public class PizzaPickupTask
     private static float PIZZA_DISTANCE_ESTIMATE = 100;
 
     // Ideal distance to pizza for pickup
-    private static float PIZZA_PICKUP_DISTANCE = 10;
+    private static float PIZZA_PICKUP_DISTANCE = 15;
 
     // Back-up distance to pickup pizza
-    private static float PIZZA_BACKUP_DISTANCE = 5;
+    private static float PIZZA_BACKUP_DISTANCE = 10;
 
     // STEP 1: Zero in on pizza
     public static boolean move_to_pizza_task(Robot robot, PizzaPedestal pizza_pedestal)
@@ -139,6 +139,46 @@ public class PizzaPickupTask
         }
         return success;
     }
+    
+    public static boolean dead_reckon_to_pizza_task(Robot robot, PizzaPedestal pizza_pedestal)
+    {
+        // STEP 1.0: Init, and turn towards Pizza
+        boolean success = true;
+
+        PoseProvider ppv = robot.pose_provider;
+        Pose current = ppv.getPose();
+        
+        float relative_heading = current.relativeBearing(pizza_pedestal.location);
+        robot.pilot.rotate(relative_heading, true);
+        
+        while (robot.pilot.isMoving())
+        {
+            // Break early condition
+            if (Button.ESCAPE.isDown())
+            {
+                success = false;
+                robot.pilot.stop();
+                break;
+            }
+        }
+        
+        current = ppv.getPose();
+        robot.pilot.travel(current.distanceTo(pizza_pedestal.location) - PIZZA_PICKUP_DISTANCE, true);
+        
+        while (robot.pilot.isMoving())
+        {
+            // Break early condition
+            if (Button.ESCAPE.isDown())
+            {
+                success = false;
+                robot.pilot.stop();
+                break;
+            }
+        }
+
+        
+        return success;
+    }
 
     /**
      * Moves to the pizza from a starting location roughly oriented towards the
@@ -150,7 +190,7 @@ public class PizzaPickupTask
         boolean success = true;
 
         // STEP 1: Home in on pizza
-        success = success && move_to_pizza_task(robot, pizza_pedestal);
+        success = success && dead_reckon_to_pizza_task(robot, pizza_pedestal);
 
         // STEP 2: Turn around to position claw
         robot.pilot.rotate(180);

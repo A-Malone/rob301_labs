@@ -31,13 +31,13 @@ public class Robot
     // Motors
     public static final NXTRegulatedMotor LEFT_MOTOR = Motor.A;
     public static final NXTRegulatedMotor RIGHT_MOTOR = Motor.B;
-    public static final NXTRegulatedMotor CLAW_MOTOR = Motor.C;
-    public static final NXTRegulatedMotor ULTRA_MOTOR = Motor.D;
+    public static final NXTRegulatedMotor CLAW_MOTOR = Motor.D;
+    public static final NXTRegulatedMotor ULTRA_MOTOR = Motor.C;
 
     // Sensors
-    public static final Port ULTRASOUND_PORT = SensorPort.S4;
+    public static final Port ULTRASOUND_PORT = SensorPort.S1;
     public static final Port COLOR_PORT = SensorPort.S2;
-    public static final Port GYRO_PORT = SensorPort.S1;
+    public static final Port GYRO_PORT = SensorPort.S4;
 
     // NON-STATIC VARIABLES
     public DifferentialPilot pilot;
@@ -55,12 +55,15 @@ public class Robot
         gyro = new EV3GyroSensor(Robot.GYRO_PORT);
         ultra = new EV3UltrasonicSensor(Robot.ULTRASOUND_PORT);
         color = new EV3ColorSensor(Robot.COLOR_PORT);
+        
+        // Set the rotation speed of the claw
+        CLAW_MOTOR.setSpeed(20);
 
         // Create the pilot based on the Robot's parameters
-        pilot = new DifferentialPilot(Robot.wheel_diameter, Robot.get_track_width(), LEFT_MOTOR, RIGHT_MOTOR);
+        pilot = new DifferentialPilot(Robot.wheel_diameter, Robot.get_track_width(), LEFT_MOTOR, RIGHT_MOTOR, true);
 
         pilot.setTravelSpeed(15);
-        pilot.setRotateSpeed(180 / 4);
+        pilot.setRotateSpeed(180 / 2);
 
         // Create the navigator used to perform the operations described
         navigator = new Navigator(pilot);
@@ -76,8 +79,9 @@ public class Robot
 
     public static float get_track_width()
     {
-        PilotProps pp = new PilotProps();
-        return Float.parseFloat(pp.getProperty(PilotProps.KEY_TRACKWIDTH, String.valueOf(wheel_track_width)));
+    	return 12.83f;
+        //PilotProps pp = new PilotProps();
+        //return Float.parseFloat(pp.getProperty(PilotProps.KEY_TRACKWIDTH, String.valueOf(wheel_track_width)));
     }
 
     // ---- ROBOT UTILITY FUNCTIONS

@@ -22,11 +22,11 @@ public class ScannerTest
         Robot robot = new Robot();
 
         // Pass in the pilot as a MoveProvider, and the Gyro
-        DirectionKalmanPoseProvider gyro_pose = new DirectionKalmanPoseProvider(robot.pilot, robot.gyro);
-        robot.setPoseProvider(gyro_pose);
+        //DirectionKalmanPoseProvider gyro_pose = new DirectionKalmanPoseProvider(robot.pilot, robot.gyro);
+        //robot.setPoseProvider(gyro_pose);
         
         robot.pilot.setTravelSpeed(15);
-        robot.pilot.setRotateSpeed(180 / 4);
+        robot.pilot.setRotateSpeed(180 / 3);
         
 
         Button.ENTER.waitForPressAndRelease();

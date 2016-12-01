@@ -20,8 +20,8 @@ public class NavigateToRoad
         Robot robot = new Robot();
 
         // Pass in the pilot as a MoveProvider, and the Gyro
-        DirectionKalmanPoseProvider gyro_pose = new DirectionKalmanPoseProvider(robot.pilot, robot.gyro);
-        robot.setPoseProvider(gyro_pose);
+        //DirectionKalmanPoseProvider gyro_pose = new DirectionKalmanPoseProvider(robot.pilot, robot.gyro);
+        //robot.setPoseProvider(gyro_pose);
         
         // Choose road starting position
         Road road = Road.BLUE_ROAD;

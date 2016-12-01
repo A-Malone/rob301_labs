@@ -15,6 +15,8 @@ public class NavTest
         robot.navigator.addWaypoint(50, 50);
         robot.navigator.addWaypoint(0, 50);
         robot.navigator.addWaypoint(0, 0);
+        
+        robot.pilot.setAcceleration((int)(robot.pilot.getTravelSpeed()*2));
 
         while (!lejos.hardware.Button.ENTER.isDown())
         {
