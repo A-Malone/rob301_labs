@@ -2,6 +2,7 @@ package launchers;
 
 import common.BoardUtils.Road;
 import common.RobotUtils;
+import lejos.hardware.Button;
 import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
@@ -39,6 +40,15 @@ public class NavigateToRoad
         // Choose road starting position
         Road road = Road.BLUE_ROAD;
 
-        ObstacleAvoidanceTask.navigate_to_pose_task(nav, pilot, ultra, road.start);
+        System.out.println("Press ENTER to start");
+        Button.ENTER.waitForPress();
+        
+        boolean success = ObstacleAvoidanceTask.navigate_to_pose_task(nav, pilot, ultra, road.start);
+        
+        if (success)
+        {
+            System.out.println("Press ENTER to end");
+            Button.ENTER.waitForPress();
+        }
     }
 }

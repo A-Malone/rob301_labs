@@ -1,11 +1,14 @@
 package launchers;
 
 import common.RobotUtils;
+import common.BoardUtils.PizzaPedestal;
+import lejos.hardware.Button;
 import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.robotics.navigation.DifferentialPilot;
 import lejos.robotics.navigation.Navigator;
+import lejos.utility.Delay;
 import localization.DirectionKalmanPoseProvider;
 import tasks.PizzaPickupTask;
 
@@ -35,7 +38,19 @@ public class PizzaPickup
 
         // Create the navigator used to perform the operations described
         Navigator nav = new Navigator(pilot, gyro_pose);
+        
+        // Get the pizza pedestal we'll be moving to
+        PizzaPedestal target = PizzaPedestal.LEFT;
+        
+        System.out.println("Press ENTER to start");
+        Button.ENTER.waitForPress();
 
-        PizzaPickupTask.run_task(nav, pilot, ultra.getDistanceMode(), claw);
+        boolean success = PizzaPickupTask.run_task(nav, pilot, ultra.getDistanceMode(), claw, target);
+        
+        if (success)
+        {
+            System.out.println("Press ENTER to end");
+            Button.ENTER.waitForPress();
+        }
     }
 }

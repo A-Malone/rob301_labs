@@ -3,6 +3,7 @@ package launchers;
 import common.BoardUtils.House;
 import common.BoardUtils.Road;
 import common.RobotUtils;
+import lejos.hardware.Button;
 import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3GyroSensor;
@@ -45,7 +46,16 @@ public class PizzaDropOff
         
         // Choose House
         House house = new House(road, true, 1);
+        
+        System.out.println("Press ENTER to start");
+        Button.ENTER.waitForPress();
 
-        PizzaDropOffTask.run_task(nav, pilot, ultra, color, ultra_motor, claw, house);
+        boolean success = PizzaDropOffTask.run_task(nav, pilot, ultra, color, ultra_motor, claw, house);
+        
+        if (success)
+        {
+            System.out.println("Press ENTER to end");
+            Button.ENTER.waitForPress();
+        }
     }
 }

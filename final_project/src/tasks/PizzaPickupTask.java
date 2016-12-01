@@ -1,5 +1,6 @@
 package tasks;
 
+import common.BoardUtils.PizzaPedestal;
 import common.RangeFinderScan;
 import common.RobotUtils;
 import lejos.hardware.Button;
@@ -10,6 +11,7 @@ import lejos.robotics.SampleProvider;
 import lejos.robotics.filter.MeanFilter;
 import lejos.robotics.localization.PoseProvider;
 import lejos.robotics.navigation.Navigator;
+import lejos.robotics.navigation.Pose;
 import lejos.robotics.navigation.RotateMoveController;
 
 public class PizzaPickupTask
@@ -31,12 +33,28 @@ public class PizzaPickupTask
     private static float PIZZA_BACKUP_DISTANCE = 5;
 
     // STEP 1: Zero in on pizza
-    public static boolean move_to_pizza_task(Navigator nav, RotateMoveController pilot, SampleProvider range_finder)
+    public static boolean move_to_pizza_task(Navigator nav, RotateMoveController pilot, SampleProvider range_finder,
+            PizzaPedestal pizza_pedestal)
     {
-        // STEP 1.0: INIT
+        // STEP 1.0: Init, and turn towards Pizza
         boolean success = true;
 
-        PoseProvider ppv = nav.getPoseProvider();        
+        PoseProvider ppv = nav.getPoseProvider();
+        Pose current = ppv.getPose();
+        
+        float relative_heading = current.relativeBearing(pizza_pedestal.location);
+        pilot.rotate(relative_heading, true);
+        
+        while (pilot.isMoving())
+        {
+            // Break early condition
+            if (Button.ESCAPE.isDown())
+            {
+                success = false;
+                pilot.stop();
+                break;
+            }
+        }
 
         // Resulting parameters
         float pizza_relative_heading = 0;
@@ -44,8 +62,8 @@ public class PizzaPickupTask
 
         // Search parameters
         int search_width = PIZZA_SCAN_BAND_WIDTH;
-        float last_estimated_distance = PIZZA_DISTANCE_ESTIMATE;
-
+        float last_estimated_distance = PIZZA_DISTANCE_ESTIMATE;        
+        
         while (success)
         {
             // STEP 1.1: Identify heading to pizza
@@ -71,7 +89,7 @@ public class PizzaPickupTask
 
                 // Check if we found the pizza
                 if (best_index != -1)
-                {   
+                {
                     pizza_relative_heading = scan_results.index_to_relative_heading(best_index);
                     pizza_dist = best_distance;
                     System.out.println("Pizza found " + pizza_relative_heading + ", " + ppv.getPose().getHeading());
@@ -128,12 +146,13 @@ public class PizzaPickupTask
      * pizza, and picks it up using the claw arm.
      */
     public static boolean run_task(Navigator nav, RotateMoveController pilot, SampleProvider rangefinder,
-            NXTRegulatedMotor claw)
+            NXTRegulatedMotor claw, PizzaPedestal pizza_pedestal)
     {
         // STEP 0: Init
         boolean success = true;
 
-        success = success && move_to_pizza_task(nav, pilot, rangefinder);
+        // STEP 1: Home in on pizza
+        success = success && move_to_pizza_task(nav, pilot, rangefinder, pizza_pedestal);
 
         // STEP 2: Turn around to position claw
         pilot.rotate(180);

@@ -21,16 +21,13 @@ public class ObstacleAvoidanceTask
     private static final float MOVEMENT_STEP_SIZE = 50;
     private static final int MOVEMENT_SCAN_BAND_WIDTH = 180;
 
-    public static boolean navigate_to_pose_task(Navigator nav, RotateMoveController pilot, EV3UltrasonicSensor ultra,
+    public static boolean navigate_to_pose_task(Navigator nav, RotateMoveController pilot, SampleProvider range_finder,
             Pose destination)
     {
         // STEP 0: INIT
         boolean success = true;
 
         PoseProvider ppv = nav.getPoseProvider();
-
-        // Use this for ultrasound scans
-        SampleProvider range_finder = ultra.getDistanceMode();
 
         // Use this for getting distance to obstacles when moving
         SampleProvider average_range = new MeanFilter(range_finder, 5);
