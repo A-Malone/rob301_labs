@@ -31,9 +31,9 @@ public class PoseProviderTest
 
         // ---- DEFINE PATH
 
-        robot.navigator.addWaypoint(50, 0);
-        robot.navigator.addWaypoint(50, 50);
-        robot.navigator.addWaypoint(0, 50);
+        robot.navigator.addWaypoint(25, 0);
+        robot.navigator.addWaypoint(25, 25);
+        robot.navigator.addWaypoint(0, 25);
         robot.navigator.addWaypoint(0, 0);
 
         System.out.println("Press ENTER to start");
