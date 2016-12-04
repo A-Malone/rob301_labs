@@ -1,5 +1,6 @@
 package localization;
 
+import lejos.hardware.lcd.LCD;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.geometry.Point;
 import lejos.robotics.localization.PoseProvider;
@@ -24,11 +25,21 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
     // The heading and sensor reading at the start of the move
     private float start_heading;
     private float start_sensor_angle;
+    
+    // Whether or not the gyro is reversed relative to the pilot
+    private boolean reversed;
 
     MoveProvider mp;
     boolean current = true;
-
+    
+    /** Default constructor, assumes robot is aligned with the gyro */
     public DirectionKalmanPoseProvider(MoveProvider mp, SampleProvider direction_finder)
+    {
+        this(mp, direction_finder, false);
+    }
+
+    /** Allows user to specify whether or not the robot is reversed relative to the gyro */
+    public DirectionKalmanPoseProvider(MoveProvider mp, SampleProvider direction_finder, boolean reversed)
     {
         this.mp = mp;
         mp.addMoveListener(this);
@@ -47,18 +58,20 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
 
         // 2 Sensors
         Matrix C = new Matrix(new double[][] { { 1 }, { 1 } });
-        Matrix R = new Matrix(new double[][] { { 1, 0 }, { 0, 1000 } });
+        Matrix R = new Matrix(new double[][] { { 1, 0 }, { 0, 10 } });
 
         kalman_filter = new AngleKalmanFilter(A, B, C, Q, R);
 
         kalman_filter.setState(0, 0);
+        
+        this.reversed = reversed;
     }
 
     private float get_direction_reading()
     {
         float[] sample = new float[direction_finder.sampleSize()];
         direction_finder.fetchSample(sample, 0);
-        return sample[0];
+        return (reversed) ? -sample[0] : sample[0];
     }
 
     public synchronized Pose getPose()
@@ -66,7 +79,7 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
         if (!current)
         {
             updatePose(mp.getMovement());
-        }
+        }        
         return new Pose(x, y, heading);
     }
 

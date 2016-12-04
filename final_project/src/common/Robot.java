@@ -21,7 +21,7 @@ public class Robot
     public static float wheel_width = 2.8f;
     public static float wheel_track_outer = 14.7f;
     public static float wheel_track_width = (wheel_track_outer - wheel_width);
-    public static float wheel_track_corrected = (wheel_track_outer - 0.6f * wheel_width);
+    public static float wheel_track_corrected = 12.83f;
     public static float wheel_track_radius = wheel_track_width / 2;
 
     public static float wheel_diameter = 5.6f;
@@ -63,7 +63,7 @@ public class Robot
         pilot = new DifferentialPilot(Robot.wheel_diameter, Robot.get_track_width(), LEFT_MOTOR, RIGHT_MOTOR, true);
 
         pilot.setTravelSpeed(15);
-        pilot.setRotateSpeed(180 / 2);
+        pilot.setRotateSpeed(180 / 3);
 
         // Create the navigator used to perform the operations described
         navigator = new Navigator(pilot);
@@ -79,9 +79,9 @@ public class Robot
 
     public static float get_track_width()
     {
-    	return 12.83f;
-        //PilotProps pp = new PilotProps();
-        //return Float.parseFloat(pp.getProperty(PilotProps.KEY_TRACKWIDTH, String.valueOf(wheel_track_width)));
+        //return 12.83f;
+        PilotProps pp = new PilotProps();
+        return Float.parseFloat(pp.getProperty(PilotProps.KEY_TRACKWIDTH, String.valueOf(wheel_track_width)));
     }
 
     // ---- ROBOT UTILITY FUNCTIONS
