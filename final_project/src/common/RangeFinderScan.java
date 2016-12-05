@@ -2,15 +2,20 @@ package common;
 
 import lejos.hardware.Button;
 import lejos.robotics.SampleProvider;
+import lejos.robotics.filter.MeanFilter;
 import lejos.robotics.localization.PoseProvider;
 import lejos.robotics.navigation.DifferentialPilot;
 import lejos.robotics.navigation.Pose;
 import lejos.robotics.navigation.RotateMoveController;
+import lejos.utility.Delay;
 
 public class RangeFinderScan
 {
+    public static final float MAX_SENSOR_RANGE = 9f;
+
     public int scan_bandwidth;
     public float[][] range_spectrum;
+    public float[] normalized_spectrum;
     public Pose origin;
 
     private int scan_band_halfwidth;
@@ -43,11 +48,72 @@ public class RangeFinderScan
 
     private void normalize()
     {
+        normalized_spectrum = new float[range_spectrum.length];
+        
         // Normalize to the number of readings per bucket
         for (int i = 0; i < range_spectrum.length; i++)
         {
-            range_spectrum[i][0] = range_spectrum[i][1] != 0 ? range_spectrum[i][0] / range_spectrum[i][1]
-                    : Float.MAX_VALUE;
+            float value = (range_spectrum[i][0] == Float.POSITIVE_INFINITY) ? MAX_SENSOR_RANGE : range_spectrum[i][0];
+            float count = range_spectrum[i][1];
+            normalized_spectrum[i] = (count != 0f) ? value / count : MAX_SENSOR_RANGE;
+        }
+    }
+
+    private void smooth(int radius)
+    {
+        normalized_spectrum = new float[range_spectrum.length];
+        
+        float win_total = 0;
+        float win_count = 0;
+
+        // Build window
+        for (int i = 0; i <= radius && i < range_spectrum.length; i++)
+        {
+            // Check if we should even add this value
+            if (!(range_spectrum[i][1] == 0 || Float.isInfinite(range_spectrum[i][0])
+                    || Float.isNaN(range_spectrum[i][0])))
+            {
+                win_total += range_spectrum[i][0];
+                win_count += range_spectrum[i][1];
+            }
+
+        }
+
+        for (int i = 0; i < range_spectrum.length; i++)
+        {
+            if (i >= radius)
+            {
+                // Check if we should even add this value
+                if (!(range_spectrum[i - radius][1] == 0 || Float.isInfinite(range_spectrum[i - radius][0])
+                        || Float.isNaN(range_spectrum[i - radius][0])))
+                {
+                    win_total -= range_spectrum[i - radius][0];
+                    win_count -= range_spectrum[i - radius][1];
+                }
+            }
+
+            if (i < range_spectrum.length - radius)
+            {
+                // Check if we should even add this value
+                if (!(range_spectrum[i + radius][1] == 0 || Float.isInfinite(range_spectrum[i + radius][0])
+                        || Float.isNaN(range_spectrum[i + radius][0])))
+                {
+                    win_total += range_spectrum[i + radius][0];
+                    win_count += range_spectrum[i + radius][1];
+                }
+            }
+            
+            while(!(Button.ENTER.isDown() || Button.ESCAPE.isDown()))
+            {
+                Delay.msDelay(50);
+            }
+            if(Button.ESCAPE.isDown())
+            {
+                break;
+            }
+            System.out.println(i + " " + win_total + " " + win_count);
+
+            normalized_spectrum[i] = (win_count == 0) ? MAX_SENSOR_RANGE : win_total / win_count;
         }
     }
 
@@ -106,8 +172,8 @@ public class RangeFinderScan
     public static RangeFinderScan scan(Robot robot, int scan_bandwidth)
     {
         boolean success = true;
-        
-        SampleProvider range_finder = robot.ultra.getDistanceMode();
+
+        SampleProvider range_finder = new MeanFilter(robot.ultra.getDistanceMode(), 3);
 
         PoseProvider ppv = robot.pose_provider;
         Pose start_pose = ppv.getPose();
@@ -129,6 +195,7 @@ public class RangeFinderScan
         if (success)
         {
             scan_results.normalize();
+            //scan_results.smooth(2);
             return scan_results;
         }
         else

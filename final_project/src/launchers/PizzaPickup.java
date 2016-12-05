@@ -13,30 +13,32 @@ import lejos.utility.Delay;
 import localization.DirectionKalmanPoseProvider;
 import tasks.PizzaPickupTask;
 
-public class PizzaPickup {
-	public static void main(String[] args) throws Exception {
-		// ---- INIT
-		// Create the robot with default parameters
-		Robot robot = new Robot();
+public class PizzaPickup
+{
+    public static void main(String[] args) throws Exception
+    {
+        // ---- INIT
+        // Create the robot with default parameters
+        Robot robot = new Robot();
 
-		// Pass in the pilot as a MoveProvider, and the Gyro
-		// DirectionKalmanPoseProvider gyro_pose = new
-		// DirectionKalmanPoseProvider(robot.pilot, robot.gyro);
-		// robot.setPoseProvider(gyro_pose);
+        // Pass in the pilot as a MoveProvider, and the Gyro
+        DirectionKalmanPoseProvider gyro_pose = new DirectionKalmanPoseProvider(robot.pilot, robot.gyro, true);
+        robot.setPoseProvider(gyro_pose);
 
-		robot.pose_provider.setPose(new Pose(0, -10, 90));
+        robot.pose_provider.setPose(new Pose(0, -5, -90));
 
-		// Get the pizza pedestal we'll be moving to
-		PizzaPedestal target = PizzaPedestal.LEFT;
+        // Get the pizza pedestal we'll be moving to
+        PizzaPedestal target = PizzaPedestal.LEFT;
 
-		System.out.println("Press ENTER to start");
-		Button.ENTER.waitForPress();
+        System.out.println("Press ENTER to start");
+        Button.ENTER.waitForPress();
 
-		boolean success = PizzaPickupTask.run_task(robot, target);
+        boolean success = PizzaPickupTask.run_task(robot, target);
 
-		if (success) {
-			System.out.println("Press ENTER to end");
-			Button.ENTER.waitForPress();
-		}
-	}
+        if (success)
+        {
+            System.out.println("Press ENTER to end");
+            Button.ENTER.waitForPress();
+        }
+    }
 }

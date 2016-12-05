@@ -57,7 +57,7 @@ public class Robot
         color = new EV3ColorSensor(Robot.COLOR_PORT);
         
         // Set the rotation speed of the claw
-        CLAW_MOTOR.setSpeed(20);
+        CLAW_MOTOR.setSpeed(30);
 
         // Create the pilot based on the Robot's parameters
         pilot = new DifferentialPilot(Robot.wheel_diameter, Robot.get_track_width(), LEFT_MOTOR, RIGHT_MOTOR, true);
@@ -85,12 +85,14 @@ public class Robot
     }
 
     // ---- ROBOT UTILITY FUNCTIONS
+    private static final int CLAW_ANGLE = 78;
+    
     public boolean open_claw()
     {
         boolean success = true;
 
-        CLAW_MOTOR.rotate(90, true);
-        while (success)
+        CLAW_MOTOR.rotate(CLAW_ANGLE , true);
+        while (success  && CLAW_MOTOR.isMoving())
         {
             // Break early condition
             if (Button.ESCAPE.isDown())
@@ -107,8 +109,8 @@ public class Robot
     {
         boolean success = true;
 
-        CLAW_MOTOR.rotate(-90, true);
-        while (success)
+        CLAW_MOTOR.rotate(-CLAW_ANGLE , true);
+        while (success && CLAW_MOTOR.isMoving())
         {
             // Break early condition
             if (Button.ESCAPE.isDown())

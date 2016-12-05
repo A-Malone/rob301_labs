@@ -39,7 +39,7 @@ public class ScannerTest
         {
             for (int x = 0; x < scan.scan_bandwidth; x++)
             {
-                int scan_dist = (int) ((3f - scan.range_spectrum[x][0]) * 30);
+                int scan_dist = (int) ((RangeFinderScan.MAX_SENSOR_RANGE - scan.normalized_spectrum[x]) * 10);
                 for (int y = 0; y < scan_dist; y++)
                 {
                     LCD.setPixel(x, y, 1);
