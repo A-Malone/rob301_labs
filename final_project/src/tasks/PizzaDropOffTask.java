@@ -4,15 +4,10 @@ import common.BoardUtils.House;
 import common.BoardUtils.Road;
 import common.Robot;
 import lejos.hardware.Button;
-import lejos.hardware.motor.NXTRegulatedMotor;
-import lejos.hardware.sensor.EV3ColorSensor;
-import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.filter.MeanFilter;
 import lejos.robotics.localization.PoseProvider;
-import lejos.robotics.navigation.Navigator;
 import lejos.robotics.navigation.Pose;
-import lejos.robotics.navigation.RotateMoveController;
 import lejos.robotics.navigation.Waypoint;
 
 /**
