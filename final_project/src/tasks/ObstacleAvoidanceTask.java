@@ -34,20 +34,14 @@ public class ObstacleAvoidanceTask
         SampleProvider average_range = new MeanFilter(robot.ultra.getDistanceMode(), 5);
         float[] average_reading = new float[average_range.sampleSize()];
 
-        robot.navigator.addWaypoint(new Waypoint(destination));
+        robot.navigator.addWaypoint(new Waypoint(destination.getLocation()));
         robot.navigator.followPath();
 
         while (success && !robot.navigator.pathCompleted())
         {
-            // Step 1.1: Try moving directly to pose if we're not doing anything
-            // else
-            if (!robot.pilot.isMoving() && !robot.navigator.isMoving())
-            {
-                robot.navigator.followPath();
-            }
-
-            // Step 1.2: If we're about to run into an obstacle activate
+            // Step 1.1: If we're about to run into an obstacle activate
             // avoidance
+            boolean obstacle_detected = false;
             while (robot.navigator.isMoving() || robot.pilot.isMoving())
             {
                 // Break early condition
@@ -70,7 +64,7 @@ public class ObstacleAvoidanceTask
 
                 // If we're about to run into an obstacle, stop and begin
                 // avoidance routine
-                if (average_reading[0] < CRITICAL_OBSTACLE_DISTANCE)
+                if (average_reading[0]*100 < CRITICAL_OBSTACLE_DISTANCE)
                 {
                     if (robot.navigator.isMoving())
                     {
@@ -80,12 +74,26 @@ public class ObstacleAvoidanceTask
                     {
                         robot.pilot.stop();
                     }
+                    obstacle_detected = true;
                     break;
                 }
             }
+            
+            if (robot.navigator.pathCompleted())
+            {
+                break;
+            }
+            
+            // Step 1.2: Try moving directly to pose if we're not doing anything
+            // else
+            if (!robot.pilot.isMoving() && !robot.navigator.isMoving() && !obstacle_detected)
+            {
+                robot.navigator.followPath();
+                continue;
+            }
 
             // Step 1.3: We've encountered an obstacle, run scan
-            if (success && !robot.navigator.pathCompleted())
+            if (success && !robot.navigator.pathCompleted() && obstacle_detected)
             {
                 // Start scanning left
                 boolean found_path = false;
@@ -104,7 +112,7 @@ public class ObstacleAvoidanceTask
                     range_finder.fetchSample(sensor_reading, 0);
                     float range = sensor_reading[0] * 100;
 
-                    if (range > CRITICAL_OBSTACLE_DISTANCE*3)
+                    if (range > CRITICAL_OBSTACLE_DISTANCE*1.5f)
                     {
                         robot.pilot.stop();
                         robot.pilot.rotate(5);
@@ -131,7 +139,7 @@ public class ObstacleAvoidanceTask
                         range_finder.fetchSample(sensor_reading, 0);
                         float range = sensor_reading[0] * 100;
     
-                        if (range > CRITICAL_OBSTACLE_DISTANCE*2)
+                        if (range > CRITICAL_OBSTACLE_DISTANCE*1.5f)
                         {
                             robot.pilot.stop();
                             robot.pilot.rotate(-5);
@@ -151,6 +159,8 @@ public class ObstacleAvoidanceTask
                 }
             }
         }
+        
+        robot.navigator.rotateTo(destination.getHeading());
 
         return success;
     }
