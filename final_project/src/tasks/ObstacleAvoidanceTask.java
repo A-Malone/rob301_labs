@@ -3,6 +3,7 @@ package tasks;
 import common.RangeFinderScan;
 import common.Robot;
 import lejos.hardware.Button;
+import lejos.hardware.lcd.LCD;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.filter.MeanFilter;
 import lejos.robotics.localization.PoseProvider;
@@ -15,11 +16,11 @@ public class ObstacleAvoidanceTask
     // ---- OBBSTACLE robot.navigatorIGATION TASK
     // ------------------------------------------------------------
 
-    private static final float CRITICAL_OBSTACLE_DISTANCE = 10;
-    private static final float MOVEMENT_STEP_SIZE = 50;
+    private static final float CRITICAL_OBSTACLE_DISTANCE = 20;
+    private static final float MOVEMENT_STEP_SIZE = 40;
     private static final int MOVEMENT_SCAN_BAND_WIDTH = 180;
 
-    public static boolean navigate_to_pose_task(Robot robot,Pose destination)
+    public static boolean navigate_to_pose_task(Robot robot, Pose destination)
     {
         // STEP 0: INIT
         boolean success = true;
@@ -27,6 +28,9 @@ public class ObstacleAvoidanceTask
         PoseProvider ppv = robot.navigator.getPoseProvider();
 
         // Use this for getting distance to obstacles when moving
+        SampleProvider range_finder = robot.ultra.getDistanceMode();
+        float[] sensor_reading = new float[range_finder.sampleSize()];
+        
         SampleProvider average_range = new MeanFilter(robot.ultra.getDistanceMode(), 5);
         float[] average_reading = new float[average_range.sampleSize()];
 
@@ -83,48 +87,67 @@ public class ObstacleAvoidanceTask
             // Step 1.3: We've encountered an obstacle, run scan
             if (success && !robot.navigator.pathCompleted())
             {
-                // Perform scan of the surroundings
-                RangeFinderScan scan_results = RangeFinderScan.scan(robot, MOVEMENT_SCAN_BAND_WIDTH);
-                success = success && (scan_results != null);
+                // Start scanning left
+                boolean found_path = false;
+                robot.pilot.rotate(MOVEMENT_SCAN_BAND_WIDTH/2, true);
 
-                if (success)
+                while (robot.pilot.isMoving())
                 {
-                    Pose current = ppv.getPose();
-                    float desired_relative_heading = current.relativeBearing(destination.getLocation());
-
-                    // Linear scan to find the best angle to travel
-                    float min_effort = Float.MAX_VALUE;
-                    int best_index = -1;
-
-                    for (int i = 0; i < scan_results.range_spectrum.length; i++)
-                    {
-                        float effort_score = 3 - scan_results.range_spectrum[i][0]
-                                + Math.abs(desired_relative_heading - scan_results.index_to_relative_heading(i)) / 180;
-                        if (effort_score < min_effort)
-                        {
-                            min_effort = effort_score;
-                            best_index = i;
-                        }
-                    }
-
-                    if (best_index != -1)
-                    {
-                        float chosen_direction = scan_results.index_to_relative_heading(best_index);
-
-                        // Add another waypoint to the robot.navigator
-                        // Point next_waypoint =
-                        // current.pointAt(MOVEMENT_STEP_SIZE,
-                        // chosen_direction);
-                        // robot.navigator.addWaypoint(new Waypoint(next_waypoint));
-
-                        // Start moving in the direction of the best path
-                        robot.pilot.rotate(chosen_direction);
-                        robot.pilot.travel(MOVEMENT_STEP_SIZE, true);
-                    }
-                    else
+                    // Break early condition
+                    if (Button.ESCAPE.isDown())
                     {
                         success = false;
+                        robot.pilot.stop();
+                        break;
                     }
+
+                    range_finder.fetchSample(sensor_reading, 0);
+                    float range = sensor_reading[0] * 100;
+
+                    if (range > CRITICAL_OBSTACLE_DISTANCE*3)
+                    {
+                        robot.pilot.stop();
+                        robot.pilot.rotate(5);
+                        found_path = true;
+                        break;
+                    }
+                }
+                
+                // Scan right
+                if (success && !found_path)
+                {
+                    robot.pilot.rotate(-MOVEMENT_SCAN_BAND_WIDTH, true);
+    
+                    while (robot.pilot.isMoving())
+                    {
+                        // Break early condition
+                        if (Button.ESCAPE.isDown())
+                        {
+                            success = false;
+                            robot.pilot.stop();
+                            break;
+                        }
+    
+                        range_finder.fetchSample(sensor_reading, 0);
+                        float range = sensor_reading[0] * 100;
+    
+                        if (range > CRITICAL_OBSTACLE_DISTANCE*2)
+                        {
+                            robot.pilot.stop();
+                            robot.pilot.rotate(-5);
+                            found_path = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // If we can't find a path quit
+                success = success && found_path;
+                
+                // If we found a path start moving in that direction
+                if(success && found_path)
+                {
+                    robot.pilot.travel(MOVEMENT_STEP_SIZE, true);
                 }
             }
         }
