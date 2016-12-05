@@ -2,7 +2,6 @@ package tasks;
 
 import common.BoardUtils.House;
 import common.BoardUtils.Road;
-import common.PIDController;
 import common.Robot;
 import lejos.hardware.Button;
 import lejos.hardware.motor.NXTRegulatedMotor;
