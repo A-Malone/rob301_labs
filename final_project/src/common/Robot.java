@@ -13,6 +13,11 @@ import lejos.robotics.navigation.DifferentialPilot;
 import lejos.robotics.navigation.Navigator;
 import lejos.utility.PilotProps;
 
+/**
+ * A class representing the physical and electrical properties of the robot.
+ * Allows for standardized setup of the robot, and access to sensors and motors.
+ * Also provides utility functions for openning and closing the claw.
+ */
 public class Robot
 {
     static final float CM_TO_IN = 0.393701f;
@@ -55,7 +60,7 @@ public class Robot
         gyro = new EV3GyroSensor(Robot.GYRO_PORT);
         ultra = new EV3UltrasonicSensor(Robot.ULTRASOUND_PORT);
         color = new EV3ColorSensor(Robot.COLOR_PORT);
-        
+
         // Set the rotation speed of the claw
         CLAW_MOTOR.setSpeed(30);
 
@@ -79,20 +84,19 @@ public class Robot
 
     public static float get_track_width()
     {
-        //return 12.83f;
         PilotProps pp = new PilotProps();
         return Float.parseFloat(pp.getProperty(PilotProps.KEY_TRACKWIDTH, String.valueOf(wheel_track_width)));
     }
 
     // ---- ROBOT UTILITY FUNCTIONS
     private static final int CLAW_ANGLE = 78;
-    
+
     public boolean open_claw()
     {
         boolean success = true;
 
-        CLAW_MOTOR.rotate(CLAW_ANGLE , true);
-        while (success  && CLAW_MOTOR.isMoving())
+        CLAW_MOTOR.rotate(CLAW_ANGLE, true);
+        while (success && CLAW_MOTOR.isMoving())
         {
             // Break early condition
             if (Button.ESCAPE.isDown())
@@ -109,7 +113,7 @@ public class Robot
     {
         boolean success = true;
 
-        CLAW_MOTOR.rotate(-CLAW_ANGLE , true);
+        CLAW_MOTOR.rotate(-CLAW_ANGLE, true);
         while (success && CLAW_MOTOR.isMoving())
         {
             // Break early condition

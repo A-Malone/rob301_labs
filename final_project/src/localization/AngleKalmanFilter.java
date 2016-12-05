@@ -1,11 +1,10 @@
 package localization;
 
-import lejos.hardware.Button;
-import lejos.utility.KalmanFilter;
 import lejos.utility.Matrix;
 
 /**
- * Implementation of a Kalman filter using the Matrix class
+ * Implementation of a Kalman filter using the Matrix class.
+ * Fuses data from 2 sensors into angle readings.
  */
 public class AngleKalmanFilter
 {

@@ -7,6 +7,9 @@ import lejos.robotics.navigation.DifferentialPilot;
 import lejos.utility.Delay;
 import localization.DirectionKalmanPoseProvider;
 
+/**
+ * Incremental test which tests the differential pilot.
+ */
 public class PilotTest
 {
     public static void main(String[] args) throws Exception

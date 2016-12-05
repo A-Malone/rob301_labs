@@ -1,18 +1,13 @@
 package launchers;
 
-import common.Robot;
 import common.BoardUtils.PizzaPedestal;
+import common.Robot;
 import lejos.hardware.Button;
-import lejos.hardware.motor.NXTRegulatedMotor;
-import lejos.hardware.sensor.EV3GyroSensor;
-import lejos.hardware.sensor.EV3UltrasonicSensor;
-import lejos.robotics.navigation.DifferentialPilot;
-import lejos.robotics.navigation.Navigator;
 import lejos.robotics.navigation.Pose;
-import lejos.utility.Delay;
 import localization.DirectionKalmanPoseProvider;
 import tasks.PizzaPickupTask;
 
+/** Entrypoint for the pizza pick-up task */
 public class PizzaPickup
 {
     public static void main(String[] args) throws Exception
@@ -25,7 +20,7 @@ public class PizzaPickup
         DirectionKalmanPoseProvider gyro_pose = new DirectionKalmanPoseProvider(robot.pilot, robot.gyro, true);
         robot.setPoseProvider(gyro_pose);
 
-        robot.pose_provider.setPose(new Pose(0, -5, -90));
+        robot.pose_provider.setPose(new Pose(0, 0, -90));
 
         // Get the pizza pedestal we'll be moving to
         PizzaPedestal target = PizzaPedestal.LEFT;

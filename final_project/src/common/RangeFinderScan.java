@@ -4,11 +4,14 @@ import lejos.hardware.Button;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.filter.MeanFilter;
 import lejos.robotics.localization.PoseProvider;
-import lejos.robotics.navigation.DifferentialPilot;
 import lejos.robotics.navigation.Pose;
 import lejos.robotics.navigation.RotateMoveController;
 import lejos.utility.Delay;
 
+/**
+ * Failed attempt to perform a radial range scan in order to identify obstacles
+ * and possible paths
+ */
 public class RangeFinderScan
 {
     public static final float MAX_SENSOR_RANGE = 9f;
@@ -49,7 +52,7 @@ public class RangeFinderScan
     private void normalize()
     {
         normalized_spectrum = new float[range_spectrum.length];
-        
+
         // Normalize to the number of readings per bucket
         for (int i = 0; i < range_spectrum.length; i++)
         {
@@ -62,7 +65,7 @@ public class RangeFinderScan
     private void smooth(int radius)
     {
         normalized_spectrum = new float[range_spectrum.length];
-        
+
         float win_total = 0;
         float win_count = 0;
 
@@ -102,12 +105,12 @@ public class RangeFinderScan
                     win_count += range_spectrum[i + radius][1];
                 }
             }
-            
-            while(!(Button.ENTER.isDown() || Button.ESCAPE.isDown()))
+
+            while (!(Button.ENTER.isDown() || Button.ESCAPE.isDown()))
             {
                 Delay.msDelay(50);
             }
-            if(Button.ESCAPE.isDown())
+            if (Button.ESCAPE.isDown())
             {
                 break;
             }
@@ -195,7 +198,7 @@ public class RangeFinderScan
         if (success)
         {
             scan_results.normalize();
-            //scan_results.smooth(2);
+            // scan_results.smooth(2);
             return scan_results;
         }
         else

@@ -10,7 +10,9 @@ import lejos.robotics.navigation.MoveProvider;
 import lejos.robotics.navigation.Pose;
 
 /**
- * Pose Provider using the EV3GyroSensor
+ * Pose Provider using the EV3GyroSensor and the concept of gyrodometry, which
+ * corrects sudden changes in the angle of the robot using the gyroscope. This
+ * is supplanted by the DifferentialKalmanPoseProvider.
  */
 public class GyrodometryPoseProvider implements PoseProvider, MoveListener, SampleProvider
 {
@@ -92,7 +94,8 @@ public class GyrodometryPoseProvider implements PoseProvider, MoveListener, Samp
         {
             dx = (distance) * (float) Math.cos(headingRad);
             dy = (distance) * (float) Math.sin(headingRad);
-        } else if (event.getMoveType() == Move.MoveType.ARC)
+        }
+        else if (event.getMoveType() == Move.MoveType.ARC)
         {
             double turnRad = Math.toRadians(angle_delta);
             double radius = distance / turnRad;

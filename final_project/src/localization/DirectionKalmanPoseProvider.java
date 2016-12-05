@@ -1,6 +1,5 @@
 package localization;
 
-import lejos.hardware.lcd.LCD;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.geometry.Point;
 import lejos.robotics.localization.PoseProvider;
@@ -8,9 +7,13 @@ import lejos.robotics.navigation.Move;
 import lejos.robotics.navigation.MoveListener;
 import lejos.robotics.navigation.MoveProvider;
 import lejos.robotics.navigation.Pose;
-import lejos.utility.KalmanFilter;
 import lejos.utility.Matrix;
 
+/**
+ * PoseProvider class which allows the robot to keep track of it's position and
+ * heading. This is the main localization engine of the robot, and makes use of
+ * the custom Kalman Filter implementation.
+ */
 public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, SampleProvider
 {
     private SampleProvider direction_finder;
@@ -25,20 +28,23 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
     // The heading and sensor reading at the start of the move
     private float start_heading;
     private float start_sensor_angle;
-    
+
     // Whether or not the gyro is reversed relative to the pilot
     private boolean reversed;
 
     MoveProvider mp;
     boolean current = true;
-    
+
     /** Default constructor, assumes robot is aligned with the gyro */
     public DirectionKalmanPoseProvider(MoveProvider mp, SampleProvider direction_finder)
     {
         this(mp, direction_finder, false);
     }
 
-    /** Allows user to specify whether or not the robot is reversed relative to the gyro */
+    /**
+     * Allows user to specify whether or not the robot is reversed relative to
+     * the gyro
+     */
     public DirectionKalmanPoseProvider(MoveProvider mp, SampleProvider direction_finder, boolean reversed)
     {
         this.mp = mp;
@@ -63,7 +69,7 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
         kalman_filter = new AngleKalmanFilter(A, B, C, Q, R);
 
         kalman_filter.setState(0, 0);
-        
+
         this.reversed = reversed;
     }
 
@@ -79,7 +85,7 @@ public class DirectionKalmanPoseProvider implements PoseProvider, MoveListener, 
         if (!current)
         {
             updatePose(mp.getMovement());
-        }        
+        }
         return new Pose(x, y, heading);
     }
 

@@ -4,13 +4,12 @@ import common.RangeFinderScan;
 import common.Robot;
 import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
-import lejos.hardware.motor.NXTRegulatedMotor;
-import lejos.hardware.sensor.EV3GyroSensor;
-import lejos.hardware.sensor.EV3UltrasonicSensor;
-import lejos.robotics.SampleProvider;
-import lejos.robotics.navigation.DifferentialPilot;
-import lejos.utility.Delay;
 import localization.DirectionKalmanPoseProvider;
+
+/**
+ * Tests and visualizes the results of a RangeFinderScan. This feature did not
+ * work in the end
+ */
 
 public class ScannerTest
 {

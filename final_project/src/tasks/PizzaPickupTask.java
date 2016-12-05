@@ -15,6 +15,14 @@ import lejos.robotics.navigation.Navigator;
 import lejos.robotics.navigation.Pose;
 import lejos.robotics.navigation.RotateMoveController;
 
+/**
+ * Class that performs the pizza pickup task. The main entrypoint is called
+ * run_task, and calls the appropriate subtasks. The move_to_pizza tasks
+ * represent the evolution of the code over time, the first iteration attempts
+ * to use the RangeFinderScan class to hone in on the pizza. The second uses
+ * plain inertial navigation, and the final approach uses the rangefinder to
+ * sweep until it locates the pizza, then move to the pizza.
+ */
 public class PizzaPickupTask
 {
     // ------------------------------------------------------------
@@ -31,9 +39,12 @@ public class PizzaPickupTask
     private static float PIZZA_PICKUP_DISTANCE = 30;
 
     // Back-up distance to pickup pizza
-    private static float PIZZA_BACKUP_DISTANCE = PIZZA_PICKUP_DISTANCE-11;
+    private static float PIZZA_BACKUP_DISTANCE = PIZZA_PICKUP_DISTANCE - 11;
 
-    // STEP 1: Zero in on pizza
+    /**
+     * Iteration 1: Perform a radial scan and attempt to identify the pizza's
+     * angle, then move to it.
+     */
     public static boolean move_to_pizza_task(Robot robot, PizzaPedestal pizza_pedestal)
     {
         // STEP 1.0: Init, and turn towards Pizza
@@ -141,6 +152,7 @@ public class PizzaPickupTask
         return success;
     }
 
+    /** Iteration 2: Kalman filter based inertial navigation */
     public static boolean dead_reckon_to_pizza_task(Robot robot, PizzaPedestal pizza_pedestal)
     {
         // STEP 1.0: Init, and turn towards Pizza
@@ -148,7 +160,7 @@ public class PizzaPickupTask
 
         PoseProvider ppv = robot.pose_provider;
         Pose current = ppv.getPose();
-        
+
         SampleProvider range_finder = robot.ultra.getDistanceMode();
         float[] sensor_reading = new float[range_finder.sampleSize()];
 
@@ -179,11 +191,11 @@ public class PizzaPickupTask
                 break;
             }
         }
-        
+
         current = ppv.getPose();
 
         // SCAN FOR THE PIZZA STAND
-        
+
         // Rotate to the left of the pizza stand
         robot.pilot.rotate(current.relativeBearing(pizza_pedestal.location) - PIZZA_SCAN_BAND_WIDTH / 2, true);
 
@@ -220,20 +232,23 @@ public class PizzaPickupTask
 
                 LCD.drawString(String.valueOf(range), 0, 4);
 
-                if (range > 0 && range < PIZZA_PICKUP_DISTANCE*2)
+                if (range > 0 && range < PIZZA_PICKUP_DISTANCE * 2)
                 {
                     robot.pilot.stop();
                     break;
                 }
             }
-            
+
             robot.pilot.setRotateSpeed(speed);
         }
 
         return success;
     }
 
-    // STEP 1: Zero in on pizza
+    /**
+     * Iteration 3: FINAL Upon detecting obstacle, scan left then right and
+     * choose first open direction
+     */
     public static boolean move_to_pizza_task_no_scan(Robot robot, PizzaPedestal pizza_pedestal)
     {
         // STEP 1.0: Init, and turn towards Pizza

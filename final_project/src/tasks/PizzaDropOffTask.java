@@ -16,10 +16,16 @@ import lejos.robotics.navigation.Pose;
 import lejos.robotics.navigation.RotateMoveController;
 import lejos.robotics.navigation.Waypoint;
 
+/**
+ * Class that performs the pizza pickup task. The run_task method is the main
+ * entrypoint and causes the robot to drive in a straight line and count houses.
+ * PID control was tested for line following, but was determined to add more
+ * complexity, and use of the interial navigation system was selected instead
+ */
 public class PizzaDropOffTask
 {
 
-    public static float HOUSE_DETECTION_EPSILON = 0.1f;
+    public static float HOUSE_DETECTION_EPSILON = 15f;
     public static int HOUSE_MIN_SPACING = 5;
 
     /**
@@ -35,8 +41,6 @@ public class PizzaDropOffTask
 
         SampleProvider average_range = new MeanFilter(range_finder, 3);
         float[] average_reading = new float[average_range.sampleSize()];
-
-        PIDController controller = new PIDController(2.00f, 9.00f, 0.05f);
 
         // STEP 1: Turn the ultrasound to the correct side
         if (house.left)
@@ -86,41 +90,48 @@ public class PizzaDropOffTask
                 Pose current = ppv.getPose();
 
                 // If we detect a house, add it to our counter
-                average_range.fetchSample(average_reading, 0);
-                if ((average_reading[0] - House.DIST_TO_ROAD / 100f) < HOUSE_DETECTION_EPSILON
-                        && (last_house_pose == null || current.distanceTo(last_house_pose.getLocation()) > HOUSE_MIN_SPACING))
+                range_finder.fetchSample(average_reading, 0);
+                if (!(Float.isInfinite(average_reading[0]) || Float.isNaN(average_reading[0])))
                 {
-                    house_count++;
-                    last_house_pose = current;
-                    
-                    // If this house is the desired house, break from the loop
-                    if (house_count == house.address)
+                    if (Math.abs(average_reading[0] * 100 - House.DIST_TO_ROAD) < HOUSE_DETECTION_EPSILON
+                            && (last_house_pose == null
+                                    || current.distanceTo(last_house_pose.getLocation()) > HOUSE_MIN_SPACING))
                     {
-                       break;
+                        System.out.println(average_reading[0]);
+                        house_count++;
+                        last_house_pose = current;
+
+                        // If this house is the desired house, break from the
+                        // loop
+                        if (house_count == house.address)
+                        {
+                            break;
+                        }
                     }
                 }
             }
-            
+
             // STEP 4: Turn and drop the pizza
             if (success)
             {
                 if (house.left)
                 {
-                    robot.pilot.rotate(-90);
+                    robot.pilot.rotate(90);
                 }
                 else
                 {
-                    robot.pilot.rotate(90);
+                    robot.pilot.rotate(-90);
                 }
-                
+
                 success = success && robot.open_claw();
+                success = success && robot.close_claw();
             }
-            
+
             // STEP 5: Return to the start of the road
             if (success)
             {
                 robot.navigator.goTo(new Waypoint(house.road.start.getLocation()));
-                
+
                 while (robot.navigator.isMoving())
                 {
                     // Break early condition
@@ -131,6 +142,16 @@ public class PizzaDropOffTask
                         break;
                     }
                 }
+            }
+
+            // STEP 6: Return the ultrasound to the starting position
+            if (house.left)
+            {
+                robot.ULTRA_MOTOR.rotate(-90);
+            }
+            else
+            {
+                robot.ULTRA_MOTOR.rotate(90);
             }
         }
 

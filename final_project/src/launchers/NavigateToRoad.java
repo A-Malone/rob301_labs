@@ -3,15 +3,11 @@ package launchers;
 import common.BoardUtils.Road;
 import common.Robot;
 import lejos.hardware.Button;
-import lejos.hardware.motor.NXTRegulatedMotor;
-import lejos.hardware.sensor.EV3GyroSensor;
-import lejos.hardware.sensor.EV3UltrasonicSensor;
-import lejos.robotics.navigation.DifferentialPilot;
-import lejos.robotics.navigation.Navigator;
 import lejos.robotics.navigation.Pose;
 import localization.DirectionKalmanPoseProvider;
 import tasks.ObstacleAvoidanceTask;
 
+/** Entrypoint for the navigate to road task */
 public class NavigateToRoad
 {
     public static void main(String[] args) throws Exception
